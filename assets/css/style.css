@@ -392,3 +392,109 @@ input:focus, select:focus { border-color: var(--blue); }
 }
 
 .msg-error { color: var(--red); }
+
+/* ─── PAGE LOADER ───────────────────────────────────────────────────────── */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+  backdrop-filter: blur(2px);
+}
+
+/* ─── DUPLICATE MODAL TABLE ────────────────────────────────────────────── */
+.dup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.dup-table th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.dup-table td {
+  padding: 0.4375rem 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.dup-table tbody tr:last-child td { border-bottom: none; }
+
+.dt-amount { font-weight: 600; color: var(--slate); white-space: nowrap; width: 42%; }
+.dt-date   { color: var(--muted); font-size: 0.8125rem; }
+
+.dt-total-row td {
+  border-top: 1.5px solid var(--slate);
+  padding-top: 0.5rem;
+  font-weight: 700;
+  color: var(--slate);
+}
+
+.dt-total-label { white-space: nowrap; }
+.dt-total-val   { text-align: right; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 500;
+}
+
+.modal-card {
+  background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 1.5rem 1rem 2.5rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.modal-title    { font-size: 1.0625rem; font-weight: 700; margin-bottom: 0.5rem; }
+.modal-body     { font-size: 0.875rem; color: var(--muted); margin-bottom: 0.75rem; }
+.modal-question { font-size: 0.9375rem; font-weight: 500; margin-bottom: 0; }
+
+.dup-record {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.dup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.dup-row:last-child  { border-bottom: none; }
+.dup-row span        { color: var(--muted); }
+.dup-row strong      { color: var(--slate); }
+.dup-total-row       { border-top: 1.5px solid var(--border); margin-top: 0.125rem; }
+.dup-total-row span,
+.dup-total-row strong { color: var(--slate); font-weight: 700; }
+
+/* Amber left accent for consolidated duplicate rows */
+.house-row.dup-entry { border-left: 3px solid var(--amber); padding-left: calc(1rem - 3px); }
+
+.dup-splits      { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.375rem; }
+
+.dup-split       { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.split-amount    { font-size: 0.8125rem; font-weight: 600; color: var(--slate); }
+.split-date      { font-size: 0.75rem; color: var(--light); }
