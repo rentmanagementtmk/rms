@@ -34,8 +34,8 @@
     <section id="scan-section">
       <div class="scan-prompt card">
         <span class="scan-icon">📷</span>
-        <h2 data-i18n="collect.title">Collect Rent</h2>
-        <p data-i18n="collect.subtitle">Scan the QR code on the house door to begin</p>
+        <h2 data-i18n="collect.title">Rent Payment</h2>
+        <p data-i18n="collect.subtitle">Scan the house QR code to begin</p>
         <button id="scan-btn" class="btn btn-primary" data-i18n="collect.scan_btn">Scan QR Code</button>
         <button type="button" id="manual-toggle" class="link-btn" data-i18n="collect.manual_toggle">Enter house manually</button>
       </div>
@@ -84,6 +84,25 @@
     </section>
 
   </main>
+
+  <!-- Full-page spinner shown during house lookup API calls -->
+  <div id="page-loader" class="page-loader hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Duplicate entry confirmation modal -->
+  <div id="dup-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p id="dup-title"  class="modal-title"></p>
+      <p id="dup-body"   class="modal-body"></p>
+      <div id="dup-existing" class="dup-record"></div>
+      <p id="dup-question" class="modal-question"></p>
+      <div class="btn-group">
+        <button id="dup-cancel"  class="btn btn-secondary"></button>
+        <button id="dup-confirm" class="btn btn-primary"></button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" class="toast hidden"></div>
 
