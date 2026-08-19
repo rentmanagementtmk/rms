@@ -9,31 +9,33 @@ const CONFIG = {
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const BUILDINGS = ['Jalanidhi', 'Spatika', 'Manikya', 'Vaidurya', 'Aparanji'];
 
+const FLOOR_LABELS = { GF: 'Ground Floor', FF: 'First Floor', SF: 'Second Floor' };
+
 const HOUSES = [
-  { id: 'JLN-GF-01', building: 'Jalanidhi', floor: 'GF', num: '01' },
-  { id: 'JLN-GF-02', building: 'Jalanidhi', floor: 'GF', num: '02' },
-  { id: 'JLN-FF-01', building: 'Jalanidhi', floor: 'FF', num: '01' },
-  { id: 'JLN-FF-02', building: 'Jalanidhi', floor: 'FF', num: '02' },
-  { id: 'JLN-SF-01', building: 'Jalanidhi', floor: 'SF', num: '01' },
-  { id: 'JLN-SF-02', building: 'Jalanidhi', floor: 'SF', num: '02' },
-  { id: 'SPT-GF-01', building: 'Spatika',   floor: 'GF', num: '01' },
-  { id: 'SPT-GF-02', building: 'Spatika',   floor: 'GF', num: '02' },
-  { id: 'SPT-FF-01', building: 'Spatika',   floor: 'FF', num: '01' },
-  { id: 'SPT-FF-02', building: 'Spatika',   floor: 'FF', num: '02' },
-  { id: 'MNK-GF-01', building: 'Manikya',   floor: 'GF', num: '01' },
-  { id: 'MNK-GF-02', building: 'Manikya',   floor: 'GF', num: '02' },
-  { id: 'MNK-FF-01', building: 'Manikya',   floor: 'FF', num: '01' },
-  { id: 'MNK-FF-02', building: 'Manikya',   floor: 'FF', num: '02' },
-  { id: 'VDR-GF-01', building: 'Vaidurya',  floor: 'GF', num: '01' },
-  { id: 'VDR-GF-02', building: 'Vaidurya',  floor: 'GF', num: '02' },
-  { id: 'VDR-FF-01', building: 'Vaidurya',  floor: 'FF', num: '01' },
-  { id: 'VDR-FF-02', building: 'Vaidurya',  floor: 'FF', num: '02' },
-  { id: 'APR-GF-01', building: 'Aparanji',  floor: 'GF', num: '01' },
-  { id: 'APR-GF-02', building: 'Aparanji',  floor: 'GF', num: '02' },
-  { id: 'APR-FF-01', building: 'Aparanji',  floor: 'FF', num: '01' },
-  { id: 'APR-FF-02', building: 'Aparanji',  floor: 'FF', num: '02' },
-  { id: 'APR-SF-01', building: 'Aparanji',  floor: 'SF', num: '01' },
-  { id: 'APR-SF-02', building: 'Aparanji',  floor: 'SF', num: '02' },
+  { id: 'JLN-GF-01', building: 'Jalanidhi', floor: 'GF', num: '01', displayNum: 1 },
+  { id: 'JLN-GF-02', building: 'Jalanidhi', floor: 'GF', num: '02', displayNum: 2 },
+  { id: 'JLN-FF-01', building: 'Jalanidhi', floor: 'FF', num: '01', displayNum: 3 },
+  { id: 'JLN-FF-02', building: 'Jalanidhi', floor: 'FF', num: '02', displayNum: 4 },
+  { id: 'JLN-SF-01', building: 'Jalanidhi', floor: 'SF', num: '01', displayNum: 5 },
+  { id: 'JLN-SF-02', building: 'Jalanidhi', floor: 'SF', num: '02', displayNum: 6 },
+  { id: 'SPT-GF-01', building: 'Spatika',   floor: 'GF', num: '01', displayNum: 1 },
+  { id: 'SPT-GF-02', building: 'Spatika',   floor: 'GF', num: '02', displayNum: 2 },
+  { id: 'SPT-FF-01', building: 'Spatika',   floor: 'FF', num: '01', displayNum: 3 },
+  { id: 'SPT-FF-02', building: 'Spatika',   floor: 'FF', num: '02', displayNum: 4 },
+  { id: 'MNK-GF-01', building: 'Manikya',   floor: 'GF', num: '01', displayNum: 1 },
+  { id: 'MNK-GF-02', building: 'Manikya',   floor: 'GF', num: '02', displayNum: 2 },
+  { id: 'MNK-FF-01', building: 'Manikya',   floor: 'FF', num: '01', displayNum: 3 },
+  { id: 'MNK-FF-02', building: 'Manikya',   floor: 'FF', num: '02', displayNum: 4 },
+  { id: 'VDR-GF-01', building: 'Vaidurya',  floor: 'GF', num: '01', displayNum: 1 },
+  { id: 'VDR-GF-02', building: 'Vaidurya',  floor: 'GF', num: '02', displayNum: 2 },
+  { id: 'VDR-FF-01', building: 'Vaidurya',  floor: 'FF', num: '01', displayNum: 3 },
+  { id: 'VDR-FF-02', building: 'Vaidurya',  floor: 'FF', num: '02', displayNum: 4 },
+  { id: 'APR-GF-01', building: 'Aparanji',  floor: 'GF', num: '01', displayNum: 1 },
+  { id: 'APR-GF-02', building: 'Aparanji',  floor: 'GF', num: '02', displayNum: 2 },
+  { id: 'APR-FF-01', building: 'Aparanji',  floor: 'FF', num: '01', displayNum: 3 },
+  { id: 'APR-FF-02', building: 'Aparanji',  floor: 'FF', num: '02', displayNum: 4 },
+  { id: 'APR-SF-01', building: 'Aparanji',  floor: 'SF', num: '01', displayNum: 5 },
+  { id: 'APR-SF-02', building: 'Aparanji',  floor: 'SF', num: '02', displayNum: 6 },
 ];
 
 // ─── API ──────────────────────────────────────────────────────────────────────
@@ -120,7 +122,10 @@ function populateHouseSelect(el, groupLabel = false) {
     HOUSES.filter(h => h.building === building).forEach(h => {
       const opt = document.createElement('option');
       opt.value = h.id;
-      opt.textContent = groupLabel ? `${building} · ${h.floor} · ${h.num}` : `${h.floor} · ${h.num}`;
+      // dashboard filter shows full name; collect manual entry stays within building optgroup
+      opt.textContent = groupLabel
+        ? `${h.building} ${h.displayNum}`
+        : `House ${h.displayNum} · ${FLOOR_LABELS[h.floor]}`;
       grp.appendChild(opt);
     });
     el.appendChild(grp);
@@ -167,9 +172,13 @@ function initCollectPage() {
 
   function showForm(house) {
     currentHouse = house;
+    const entry = HOUSES.find(x => x.id === house.HouseID);
+    const friendlyName = entry ? `${entry.building} ${entry.displayNum}` : house.HouseLabel;
+    const floorLabel   = entry ? FLOOR_LABELS[entry.floor] : '';
     houseInfoEl.innerHTML = `
       <p class="house-building">${house.BuildingName}</p>
-      <p class="house-name">${house.HouseLabel}</p>
+      <p class="house-name">${friendlyName}</p>
+      <p class="house-floor">${floorLabel}</p>
       <p class="house-id">${house.HouseID}</p>
     `;
     scanSection.classList.add('hidden');
@@ -265,9 +274,11 @@ function initCollectPage() {
       if (res.error) {
         showToast(res.error, 'error');
       } else {
+        const entry = HOUSES.find(x => x.id === currentHouse.HouseID);
+        const friendlyName = entry ? `${entry.building} ${entry.displayNum}` : currentHouse.HouseLabel;
         const msg = res.duplicate
           ? `${t('msg.duplicate_prefix')} ${t('month.' + rentMonth)} ${rentYear}`
-          : `${t('msg.saved')} ${currentHouse.HouseLabel} — ${inr(amount)}`;
+          : `${t('msg.saved')} ${friendlyName} — ${inr(amount)}`;
         showToast(msg, res.duplicate ? 'warning' : 'success', 4000);
         resetToScan();
       }
@@ -345,7 +356,8 @@ function initDashboardPage() {
           rowsHtml += `
             <div class="house-row unpaid">
               <div class="row-info">
-                <span class="row-label">${h.floor} · ${h.num}</span>
+                <span class="row-label">${h.building} ${h.displayNum}</span>
+                <span class="row-sub">${FLOOR_LABELS[h.floor]}</span>
               </div>
               <span class="row-amount no-pay">—</span>
             </div>`;
@@ -359,7 +371,8 @@ function initDashboardPage() {
             rowsHtml += `
               <div class="house-row paid">
                 <div class="row-info">
-                  <span class="row-label">${h.floor} · ${h.num}${dup}</span>
+                  <span class="row-label">${h.building} ${h.displayNum}${dup}</span>
+                  <span class="row-sub">${FLOOR_LABELS[h.floor]}</span>
                   <span class="row-sub">${t('month.' + p.RentForMonth)} ${p.RentForYear}</span>
                   <span class="row-date">${formatDate(p.CollectedDate)}</span>
                 </div>
