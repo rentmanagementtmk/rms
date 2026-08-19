@@ -58,14 +58,16 @@ async function apiPost(body) {
 }
 
 // ─── UTILITIES ───────────────────────────────────────────────────────────────
-function showToast(msg, type = 'info', ms = 3000) {
+function showToast(msg, type = 'info', ms) {
+  // duration by type: success 4s, warning 5s, error 6s
+  const duration = ms ?? (type === 'success' ? 4000 : type === 'error' ? 6000 : 5000);
   const el = document.getElementById('toast');
   if (!el) return;
   el.textContent = msg;
   el.className = `toast ${type}`;
   el.classList.remove('hidden');
   clearTimeout(el._timer);
-  el._timer = setTimeout(() => el.classList.add('hidden'), ms);
+  el._timer = setTimeout(() => el.classList.add('hidden'), duration);
 }
 
 /** Returns { month, year } of the previous calendar month (1-based month) */
@@ -74,6 +76,71 @@ function prevMonth() {
   const m = now.getMonth() + 1;
   const y = now.getFullYear();
   return m === 1 ? { month: 12, year: y - 1 } : { month: m - 1, year: y };
+}
+
+function showLoader() { document.getElementById('page-loader').classList.remove('hidden'); }
+function hideLoader() { document.getElementById('page-loader').classList.add('hidden'); }
+
+function showDupModal(records) {
+  return new Promise(resolve => {
+    const modal      = document.getElementById('dup-modal');
+    const detailEl   = document.getElementById('dup-existing');
+    const cancelBtn  = document.getElementById('dup-cancel');
+    const confirmBtn = document.getElementById('dup-confirm');
+
+    const first    = records[0];
+    const entry    = HOUSES.find(x => x.id === first.HouseID);
+    const name     = entry ? houseLabel(entry) : first.HouseLabel;
+    const monthYear = `${t('month.' + first.RentForMonth)} ${first.RentForYear}`;
+    const multi    = records.length > 1;
+
+    // House + month context in body; table focuses on Amount / Date columns only
+    const bodyText = `${name} \u00b7 ${monthYear} \u00b7 ${records.length} ${t('msg.payments')}`;
+
+    const dataRows = records.map(r => `
+      <tr>
+        <td class="dt-amount">${inr(r.AmountReceived)}</td>
+        <td class="dt-date">${formatDate(r.CollectedDate)}</td>
+      </tr>`).join('');
+
+    const totalRow = multi
+      ? `<tr class="dt-total-row">
+          <td class="dt-total-label">${t('modal.total')}</td>
+          <td class="dt-total-val">${inr(records.reduce((s, r) => s + r.AmountReceived, 0))}</td>
+         </tr>`
+      : '';
+
+    detailEl.innerHTML = `
+      <table class="dup-table">
+        <thead>
+          <tr>
+            <th>${t('modal.amount')}</th>
+            <th>${t('modal.collected')}</th>
+          </tr>
+        </thead>
+        <tbody>${dataRows}</tbody>
+        ${totalRow ? `<tfoot>${totalRow}</tfoot>` : ''}
+      </table>`;
+
+    document.getElementById('dup-title').textContent    = t('modal.dup_title');
+    document.getElementById('dup-body').textContent     = bodyText;
+    document.getElementById('dup-question').textContent = t('modal.dup_question');
+    cancelBtn.textContent  = t('collect.cancel');
+    confirmBtn.textContent = t('modal.save_anyway');
+
+    modal.classList.remove('hidden');
+
+    function cleanup() {
+      modal.classList.add('hidden');
+      cancelBtn.removeEventListener('click', onCancel);
+      confirmBtn.removeEventListener('click', onConfirm);
+    }
+    function onCancel()  { cleanup(); resolve(false); }
+    function onConfirm() { cleanup(); resolve(true);  }
+
+    cancelBtn.addEventListener('click', onCancel);
+    confirmBtn.addEventListener('click', onConfirm);
+  });
 }
 
 function inr(amount) {
@@ -115,17 +182,19 @@ function populateYearSelect(el) {
   });
 }
 
-function populateHouseSelect(el, groupLabel = false) {
+// Single source of truth for house display name — update here when tenant name is added
+function houseLabel(h) {
+  return `${h.building} ${h.displayNum}`;
+}
+
+function populateHouseSelect(el) {
   BUILDINGS.forEach(building => {
     const grp = document.createElement('optgroup');
     grp.label = building;
     HOUSES.filter(h => h.building === building).forEach(h => {
       const opt = document.createElement('option');
       opt.value = h.id;
-      // dashboard filter shows full name; collect manual entry stays within building optgroup
-      opt.textContent = groupLabel
-        ? `${h.building} ${h.displayNum}`
-        : `House ${h.displayNum} · ${FLOOR_LABELS[h.floor]}`;
+      opt.textContent = houseLabel(h);
       grp.appendChild(opt);
     });
     el.appendChild(grp);
@@ -174,11 +243,9 @@ function initCollectPage() {
     currentHouse = house;
     const entry = HOUSES.find(x => x.id === house.HouseID);
     const friendlyName = entry ? `${entry.building} ${entry.displayNum}` : house.HouseLabel;
-    const floorLabel   = entry ? FLOOR_LABELS[entry.floor] : '';
     houseInfoEl.innerHTML = `
       <p class="house-building">${house.BuildingName}</p>
       <p class="house-name">${friendlyName}</p>
-      <p class="house-floor">${floorLabel}</p>
       <p class="house-id">${house.HouseID}</p>
     `;
     scanSection.classList.add('hidden');
@@ -212,17 +279,20 @@ function initCollectPage() {
       },
       async (qrValue) => {
         await stopScanner();
+        showLoader();
         try {
           const res = await apiGet({ action: 'getHouse', qr: qrValue });
+          hideLoader();
           if (res.error) return showToast(t('msg.house_not_found'), 'error');
           showForm(res.house);
         } catch {
+          hideLoader();
           showToast(t('msg.network_error'), 'error');
         }
       },
       () => {} // per-frame decode errors are expected and ignored
     ).catch(() => {
-      showToast(t('msg.camera_denied'), 'warning', 5000);
+      showToast(t('msg.camera_denied'), 'warning');
       stopScanner();
     });
   });
@@ -237,13 +307,18 @@ function initCollectPage() {
   useManualBtn.addEventListener('click', async () => {
     const houseId = manualSel.value;
     if (!houseId) return showToast(t('msg.select_house'), 'warning');
+    useManualBtn.disabled = true;
+    showLoader();
     try {
       const res = await apiGet({ action: 'getHouse', qr: houseId });
-      if (res.error) return showToast(t('msg.house_not_found'), 'error');
+      if (res.error) { showToast(t('msg.house_not_found'), 'error'); return; }
       manualSection.classList.add('hidden');
       showForm(res.house);
     } catch {
       showToast(t('msg.network_error'), 'error');
+    } finally {
+      hideLoader();
+      useManualBtn.disabled = false;
     }
   });
 
@@ -263,6 +338,17 @@ function initCollectPage() {
     saveBtn.textContent = t('collect.saving');
 
     try {
+      // Pre-check: show details + confirmation if a record already exists
+      const dupCheck = await apiGet({ action: 'getDashboard', year: rentYear, month: rentMonth, houseId: currentHouse.HouseID });
+      if (dupCheck.records?.length > 0) {
+        saveBtn.disabled    = false;
+        saveBtn.textContent = t('collect.save');
+        const proceed = await showDupModal(dupCheck.records);
+        if (!proceed) return;
+        saveBtn.disabled    = true;
+        saveBtn.textContent = t('collect.saving');
+      }
+
       const res = await apiPost({
         action: 'saveRent',
         houseId: currentHouse.HouseID,
@@ -279,7 +365,7 @@ function initCollectPage() {
         const msg = res.duplicate
           ? `${t('msg.duplicate_prefix')} ${t('month.' + rentMonth)} ${rentYear}`
           : `${t('msg.saved')} ${friendlyName} — ${inr(amount)}`;
-        showToast(msg, res.duplicate ? 'warning' : 'success', 4000);
+        showToast(msg, res.duplicate ? 'warning' : 'success');
         resetToScan();
       }
     } catch {
@@ -301,7 +387,7 @@ function initDashboardPage() {
 
   populateYearSelect(filterYear);
   populateMonthSelect(filterMonth);
-  populateHouseSelect(filterHouse, true);
+  populateHouseSelect(filterHouse);
 
   filterMonth.value = prevMonth().month;
 
@@ -357,28 +443,48 @@ function initDashboardPage() {
             <div class="house-row unpaid">
               <div class="row-info">
                 <span class="row-label">${h.building} ${h.displayNum}</span>
-                <span class="row-sub">${FLOOR_LABELS[h.floor]}</span>
               </div>
               <span class="row-amount no-pay">—</span>
             </div>`;
         } else {
-          // DUP badge only makes sense when filtered to a specific month
           const hasDup = isMonthSelected && payments.length > 1;
-          payments.forEach(p => {
-            buildingTotal += p.AmountReceived;
-            grandTotal    += p.AmountReceived;
-            const dup = hasDup ? '<span class="badge-dup">DUP</span>' : '';
+
+          if (hasDup) {
+            // Consolidated row: total + per-payment split lines always visible
+            const total = payments.reduce((s, p) => s + p.AmountReceived, 0);
+            buildingTotal += total;
+            grandTotal    += total;
+            const monthLabel  = `${t('month.' + payments[0].RentForMonth)} ${payments[0].RentForYear}`;
+            const splitLines  = payments.map(p =>
+              `<div class="dup-split">
+                <span class="split-amount">${inr(p.AmountReceived)}</span>
+                <span class="split-date">${formatDate(p.CollectedDate)}</span>
+              </div>`
+            ).join('');
             rowsHtml += `
+              <div class="house-row paid dup-entry">
+                <div class="row-info">
+                  <span class="row-label">${h.building} ${h.displayNum} ⚠️</span>
+                  <span class="row-sub">${monthLabel} · ${payments.length} ${t('msg.payments')}</span>
+                  <div class="dup-splits">${splitLines}</div>
+                </div>
+                <span class="row-amount">${inr(total)}</span>
+              </div>`;
+          } else {
+            payments.forEach(p => {
+              buildingTotal += p.AmountReceived;
+              grandTotal    += p.AmountReceived;
+              rowsHtml += `
               <div class="house-row paid">
                 <div class="row-info">
-                  <span class="row-label">${h.building} ${h.displayNum}${dup}</span>
-                  <span class="row-sub">${FLOOR_LABELS[h.floor]}</span>
+                  <span class="row-label">${h.building} ${h.displayNum}</span>
                   <span class="row-sub">${t('month.' + p.RentForMonth)} ${p.RentForYear}</span>
                   <span class="row-date">${formatDate(p.CollectedDate)}</span>
                 </div>
                 <span class="row-amount">${inr(p.AmountReceived)}</span>
               </div>`;
-          });
+            });
+          }
         }
       });
 

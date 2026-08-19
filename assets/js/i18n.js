@@ -4,11 +4,11 @@
 const TRANSLATIONS = {
   en: {
     'header.dashboard':       'Dashboard',
-    'header.collect':         'Collect',
+    'header.collect':         'Rent',
     'header.lang_toggle':     'ಕನ್ನಡ',
 
-    'collect.title':          'Collect Rent',
-    'collect.subtitle':       'Scan the QR code on the house door to begin',
+    'collect.title':          'Rent Payment',
+    'collect.subtitle':       'Scan the house QR code to begin',
     'collect.scan_btn':       'Scan QR Code',
     'collect.manual_toggle':  'Enter house manually',
     'collect.cancel':         'Cancel',
@@ -47,15 +47,27 @@ const TRANSLATIONS = {
     'msg.net_check':          'Network error — check your connection.',
     'msg.no_records':         'No records found for the selected filters.',
     'msg.all_of':             'All of',
+    'msg.payments':           'payments',
+
+    'modal.dup_title':        '⚠️ Already Recorded',
+    'modal.dup_body':         'A payment was already recorded for this house and month:',
+    'modal.dup_body_multi':   'already recorded for this house and month:',
+    'modal.dup_question':     'Save another entry anyway?',
+    'modal.save_anyway':      'Save Anyway',
+    'modal.house':            'House',
+    'modal.month':            'Month',
+    'modal.amount':           'Amount',
+    'modal.collected':        'Date & Time',
+    'modal.total':            'Total',
   },
 
   kn: {
     'header.dashboard':       'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
-    'header.collect':         'ಸಂಗ್ರಹ',
+    'header.collect':         'ಬಾಡಿಗೆ',
     'header.lang_toggle':     'English',
 
-    'collect.title':          'ಬಾಡಿಗೆ ಸಂಗ್ರಹ',
-    'collect.subtitle':       'ಪ್ರಾರಂಭಿಸಲು ಮನೆಯ ಬಾಗಿಲಿನ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+    'collect.title':          'ಬಾಡಿಗೆ ಪಾವತಿ',
+    'collect.subtitle':       'ಮನೆಯ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
     'collect.scan_btn':       'QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
     'collect.manual_toggle':  'ಹಸ್ತಚಾಲಿತವಾಗಿ ಮನೆ ಆಯ್ಕೆ ಮಾಡಿ',
     'collect.cancel':         'ರದ್ದುಮಾಡಿ',
@@ -94,6 +106,18 @@ const TRANSLATIONS = {
     'msg.net_check':          'ನೆಟ್‌ವರ್ಕ್ ದೋಷ — ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ.',
     'msg.no_records':         'ಆಯ್ಕೆ ಮಾಡಿದ ಫಿಲ್ಟರ್‌ಗಳಿಗೆ ದಾಖಲೆಗಳಿಲ್ಲ.',
     'msg.all_of':             'ಎಲ್ಲಾ',
+    'msg.payments':           'ಪಾವತಿಗಳು',
+
+    'modal.dup_title':        '⚠️ ಈಗಾಗಲೇ ದಾಖಲಾಗಿದೆ',
+    'modal.dup_body':         'ಈ ಮನೆ ಮತ್ತು ತಿಂಗಳಿಗೆ ಪಾವತಿ ಈಗಾಗಲೇ ದಾಖಲಾಗಿದೆ:',
+    'modal.dup_body_multi':   'ಈ ಮನೆ ಮತ್ತು ತಿಂಗಳಿಗೆ ಈಗಾಗಲೇ ದಾಖಲಾಗಿವೆ:',
+    'modal.dup_question':     'ಇನ್ನೊಂದು ದಾಖಲೆ ಉಳಿಸಲಾ?',
+    'modal.save_anyway':      'ಹೌದು, ಉಳಿಸಿ',
+    'modal.house':            'ಮನೆ',
+    'modal.month':            'ತಿಂಗಳು',
+    'modal.amount':           'ಮೊತ್ತ',
+    'modal.collected':        'ದಿನಾಂಕ & ಸಮಯ',
+    'modal.total':            'ಒಟ್ಟು ಮೊತ್ತ',
   },
 };
 
