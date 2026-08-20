@@ -271,6 +271,29 @@ input:focus, select:focus { border-color: var(--blue); }
 .retry-notif-btn:active   { opacity: 0.7; }
 .retry-notif-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
+.validate-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s;
+  line-height: 1;
+}
+
+.validate-btn:hover  { border-color: var(--muted); }
+.validate-btn:active { opacity: 0.7; }
+
+/* Validate result styles (rendered inside dup-modal) */
+.val-summary       { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.75rem; }
+.val-section-label { font-size: 0.8125rem; font-weight: 700; color: var(--muted); margin: 0.5rem 0 0.25rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.val-list          { padding-left: 1.25rem; font-size: 0.875rem; color: var(--slate); line-height: 1.7; }
+.val-ok            { font-size: 0.9375rem; color: var(--green); font-weight: 600; }
+
 .house-card {
   background: linear-gradient(135deg, var(--blue), var(--blue-dk));
   color: #fff;
@@ -394,6 +417,7 @@ input:focus, select:focus { border-color: var(--blue); }
 .row-label           { font-size: 0.9375rem; font-weight: 500; }
 .row-sub             { font-size: 0.75rem; color: var(--muted); }
 .row-date            { font-size: 0.6875rem; color: var(--light); }
+.row-balance         { font-size: 0.75rem; color: var(--red); font-weight: 600; }
 .row-amount          { font-size: 1rem; font-weight: 700; color: var(--green); white-space: nowrap; }
 .row-amount.no-pay   { color: var(--muted); font-weight: 400; font-size: 0.9375rem; }
 

@@ -34,7 +34,10 @@
     <section class="filters card">
       <div class="filter-title-row">
         <h3 class="section-title" data-i18n="dashboard.filter">Filter</h3>
-        <button id="retry-btn" class="retry-notif-btn hidden" data-i18n="dashboard.retry_btn">🔕 Retry</button>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <button id="validate-btn" class="validate-btn" title="Health check — validate masters data">📋</button>
+          <button id="retry-btn" class="retry-notif-btn hidden" data-i18n="dashboard.retry_btn">🔕 Retry</button>
+        </div>
       </div>
       <div class="field-row">
         <div class="field">

@@ -81,6 +81,36 @@ function prevMonth() {
 function showLoader() { document.getElementById('page-loader').classList.remove('hidden'); }
 function hideLoader() { document.getElementById('page-loader').classList.add('hidden'); }
 
+function showValidateResult(res) {
+  const lines = [
+    `<div class="val-summary">${res.summary}</div>`,
+    ...(res.issues.length   ? [`<p class="val-section-label">❌ Issues</p>`,   `<ul class="val-list">${res.issues.map(i   => `<li>${i}</li>`).join('')}</ul>`] : []),
+    ...(res.warnings.length ? [`<p class="val-section-label">⚠️ Warnings</p>`, `<ul class="val-list">${res.warnings.map(w => `<li>${w}</li>`).join('')}</ul>`] : []),
+    ...(res.issues.length === 0 && res.warnings.length === 0 ? ['<p class="val-ok">All masters data is complete ✅</p>'] : []),
+  ].join('');
+
+  // Reuse dup-modal structure for the result overlay
+  const modal    = document.getElementById('dup-modal');
+  const detailEl = document.getElementById('dup-existing');
+  const cancelBtn  = document.getElementById('dup-cancel');
+  const confirmBtn = document.getElementById('dup-confirm');
+
+  document.getElementById('dup-title').textContent    = '⚙️ Masters Validation';
+  document.getElementById('dup-body').textContent     = '';
+  document.getElementById('dup-question').textContent = '';
+  cancelBtn.textContent  = 'Close';
+  confirmBtn.classList.add('hidden');
+  detailEl.innerHTML = lines;
+  modal.classList.remove('hidden');
+
+  function close() {
+    modal.classList.add('hidden');
+    confirmBtn.classList.remove('hidden');
+    cancelBtn.removeEventListener('click', close);
+  }
+  cancelBtn.addEventListener('click', close);
+}
+
 function showDupModal(records) {
   return new Promise(resolve => {
     const modal      = document.getElementById('dup-modal');
@@ -191,20 +221,44 @@ function houseLabel(h) {
 
 // houseId → full house row from Masters_Houses (loaded once on page init)
 let HOUSE_CACHE = {};
+let _dashboardRecords = null; // last rendered records, used for silent re-render after cache refresh
+
+const LS_HOUSE_KEY = 'rms_houses';
+const LS_TTL_MS    = 60 * 60 * 1000; // 1 hour
+
+const _houseSelectEls = new Set(); // tracks all house <select> elements for silent refresh
 
 /** Returns true when a notification was not successfully delivered */
 function notifFailed(status) {
   return status !== 'SENT' && status !== true && status !== '' && status != null;
 }
 
-async function loadHouseCache() {
+/** Loads from localStorage instantly, then silently refreshes from API in background */
+function loadHouseCache() {
+  // Synchronous: populate from localStorage if fresh
   try {
-    const res = await apiGet({ action: 'getHouses' });
-    if (res.houses) res.houses.forEach(h => { HOUSE_CACHE[h.HouseID] = h; });
-  } catch (_) { /* graceful degradation — labels show without tenant name */ }
+    const raw = localStorage.getItem(LS_HOUSE_KEY);
+    if (raw) {
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts < LS_TTL_MS) Object.assign(HOUSE_CACHE, data);
+    }
+  } catch (_) {}
+
+  // Async background refresh — silently updates cache and selects when done
+  apiGet({ action: 'getHouses' }).then(res => {
+    if (!res.houses) return;
+    const fresh = {};
+    res.houses.forEach(h => { fresh[h.HouseID] = h; });
+    Object.assign(HOUSE_CACHE, fresh);
+    try { localStorage.setItem(LS_HOUSE_KEY, JSON.stringify({ ts: Date.now(), data: fresh })); } catch (_) {}
+    _refreshHouseSelects();
+  }).catch(() => {});
 }
 
-function populateHouseSelect(el) {
+function _renderHouseSelect(el) {
+  const savedVal = el.value;
+  // Remove only optgroups so placeholder options (value='') are preserved
+  Array.from(el.children).filter(c => c.tagName === 'OPTGROUP').forEach(c => c.remove());
   BUILDINGS.forEach(building => {
     const grp = document.createElement('optgroup');
     grp.label = building;
@@ -216,11 +270,29 @@ function populateHouseSelect(el) {
     });
     el.appendChild(grp);
   });
+  el.value = savedVal;
+}
+
+function _refreshHouseSelects() {
+  _houseSelectEls.forEach(el => _renderHouseSelect(el));
+  // Re-render dashboard rows silently if they are already on screen
+  if (_dashboardRecords) {
+    const resultsEl = document.getElementById('results');
+    if (resultsEl && resultsEl.children.length > 0) {
+      const renderFn = resultsEl._render;
+      if (typeof renderFn === 'function') renderFn(_dashboardRecords);
+    }
+  }
+}
+
+function populateHouseSelect(el) {
+  _houseSelectEls.add(el);
+  _renderHouseSelect(el);
 }
 
 // ─── COLLECT PAGE ─────────────────────────────────────────────────────────────
 async function initCollectPage() {
-  await loadHouseCache();
+  loadHouseCache(); // localStorage (instant) + background API refresh
 
   const monthSel  = document.getElementById('rent-month');
   const yearSel   = document.getElementById('rent-year');
@@ -400,7 +472,7 @@ async function initCollectPage() {
 
 // ─── DASHBOARD PAGE ───────────────────────────────────────────────────────────
 async function initDashboardPage() {
-  await loadHouseCache();
+  loadHouseCache(); // localStorage (instant) + background API refresh
 
   const filterYear  = document.getElementById('filter-year');
   const filterMonth = document.getElementById('filter-month');
@@ -419,16 +491,19 @@ async function initDashboardPage() {
     resultsEl.innerHTML = '';
 
     const params = { action: 'getDashboard', year: filterYear.value };
-    if (filterMonth.value) params.month  = filterMonth.value;
+    if (filterMonth.value) params.month   = filterMonth.value;
     if (filterHouse.value) params.houseId = filterHouse.value;
 
+    // Fetch balance summary alongside dashboard data (parallel)
+    let balances = {};
     try {
-      const res = await apiGet(params);
-      if (res.error) {
-        resultsEl.innerHTML = `<p class="msg-error">${res.error}</p>`;
-        return;
-      }
-      render(res.records);
+      const [dashRes, balRes] = await Promise.all([
+        apiGet(params),
+        apiGet({ action: 'getBalanceSummary', year: filterYear.value, month: filterMonth.value || new Date().getMonth() + 1 }),
+      ]);
+      if (dashRes.error) { resultsEl.innerHTML = `<p class="msg-error">${dashRes.error}</p>`; return; }
+      if (balRes.balances) balances = balRes.balances;
+      render(dashRes.records, balances);
     } catch {
       resultsEl.innerHTML = `<p class="msg-error">${t('msg.net_check')}</p>`;
     } finally {
@@ -436,7 +511,10 @@ async function initDashboardPage() {
     }
   }
 
-  function render(records) {
+  function render(records, balances) {
+    balances = balances || {};
+    _dashboardRecords = records;
+    resultsEl._render = render;
     // Build a lookup: houseId → [payment, ...]
     const byHouse = {};
     records.forEach(r => (byHouse[r.HouseID] = byHouse[r.HouseID] || []).push(r));
@@ -462,10 +540,14 @@ async function initDashboardPage() {
         const payments = byHouse[h.id] || [];
 
         if (payments.length === 0) {
+          const bal     = balances[h.id]?.balance || 0;
+          const incIcon = balances[h.id]?.upcomingIncrement ? ' ⬆️' : '';
+          const balLine = bal > 0 ? `<span class="row-sub row-balance">Balance: ${inr(bal)}</span>` : '';
           rowsHtml += `
             <div class="house-row unpaid">
               <div class="row-info">
-                <span class="row-label">${houseLabel(h)}</span>
+                <span class="row-label">${houseLabel(h)}${incIcon}</span>
+                ${balLine}
               </div>
               <span class="row-amount no-pay">—</span>
             </div>`;
@@ -473,13 +555,14 @@ async function initDashboardPage() {
           const hasDup = isMonthSelected && payments.length > 1;
 
           if (hasDup) {
-            const total = payments.reduce((s, p) => s + p.AmountReceived, 0);
+            const total    = payments.reduce((s, p) => s + p.AmountReceived, 0);
             buildingTotal += total;
             grandTotal    += total;
             const monthLabel  = `${t('month.' + payments[0].RentForMonth)} ${payments[0].RentForYear}`;
             const tenant      = HOUSE_CACHE[h.id]?.TenantName || '';
             const rowLabel    = tenant ? `${h.building} ${h.displayNum} - ${tenant}` : `${h.building} ${h.displayNum}`;
             const bell        = payments.some(p => notifFailed(p.NotificationSent)) ? ' 🔕' : '';
+            const incIcon     = balances[h.id]?.upcomingIncrement ? ' ⬆️' : '';
             const splitLines  = payments.map(p =>
               `<div class="dup-split">
                 <span class="split-amount">${inr(p.AmountReceived)}</span>
@@ -489,7 +572,7 @@ async function initDashboardPage() {
             rowsHtml += `
               <div class="house-row paid dup-entry">
                 <div class="row-info">
-                  <span class="row-label">${rowLabel} ⚠️${bell}</span>
+                  <span class="row-label">${rowLabel} ⚠️${bell}${incIcon}</span>
                   <span class="row-sub">${monthLabel} · ${payments.length} ${t('msg.payments')}</span>
                   <div class="dup-splits">${splitLines}</div>
                 </div>
@@ -502,10 +585,11 @@ async function initDashboardPage() {
               const tenant2   = HOUSE_CACHE[h.id]?.TenantName || '';
               const rowLabel2 = tenant2 ? `${h.building} ${h.displayNum} - ${tenant2}` : `${h.building} ${h.displayNum}`;
               const bell2     = notifFailed(p.NotificationSent) ? ' 🔕' : '';
+              const incIcon2  = balances[h.id]?.upcomingIncrement ? ' ⬆️' : '';
               rowsHtml += `
               <div class="house-row paid">
                 <div class="row-info">
-                  <span class="row-label">${rowLabel2}${bell2}</span>
+                  <span class="row-label">${rowLabel2}${bell2}${incIcon2}</span>
                   <span class="row-sub">${t('month.' + p.RentForMonth)} ${p.RentForYear}</span>
                   <span class="row-date">${formatDate(p.CollectedDate)}</span>
                 </div>
@@ -555,7 +639,25 @@ async function initDashboardPage() {
 
   [filterYear, filterMonth, filterHouse].forEach(el => el.addEventListener('change', load));
 
-  const retryBtn = document.getElementById('retry-btn');
+  const retryBtn    = document.getElementById('retry-btn');
+  const validateBtn = document.getElementById('validate-btn');
+
+  if (validateBtn) {
+    validateBtn.addEventListener('click', async () => {
+      validateBtn.disabled  = true;
+      validateBtn.textContent = '⏳';
+      try {
+        const res = await apiGet({ action: 'validateMasters' });
+        showValidateResult(res);
+      } catch {
+        showToast(t('msg.network_error'), 'error');
+      } finally {
+        validateBtn.disabled   = false;
+        validateBtn.textContent = '📋';
+      }
+    });
+  }
+
   if (retryBtn) {
     retryBtn.addEventListener('click', async () => {
       retryBtn.disabled = true;
