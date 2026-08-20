@@ -245,6 +245,32 @@ input:focus, select:focus { border-color: var(--blue); }
 }
 
 /* ─── HOUSE CARD ────────────────────────────────────────────────────────── */
+.filter-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.875rem;
+}
+
+.filter-title-row .section-title { margin-bottom: 0; }
+
+.retry-notif-btn {
+  background: none;
+  border: 1.5px solid var(--amber);
+  color: var(--amber);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
+}
+
+.retry-notif-btn:active   { opacity: 0.7; }
+.retry-notif-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
 .house-card {
   background: linear-gradient(135deg, var(--blue), var(--blue-dk));
   color: #fff;
