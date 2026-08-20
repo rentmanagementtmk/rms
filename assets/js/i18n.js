@@ -31,6 +31,7 @@ const TRANSLATIONS = {
     'dashboard.all_houses':   'All Houses',
     'dashboard.total':        'Total Collected',
     'dashboard.loading':      'Loading…',
+    'dashboard.retry_btn':    '🔕 Retry',
 
     'month.1':  'January',   'month.2':  'February',  'month.3':  'March',
     'month.4':  'April',     'month.5':  'May',        'month.6':  'June',
@@ -48,6 +49,7 @@ const TRANSLATIONS = {
     'msg.no_records':         'No records found for the selected filters.',
     'msg.all_of':             'All of',
     'msg.payments':           'payments',
+    'msg.notif_retried':      'notifications retried',
 
     'modal.dup_title':        '⚠️ Already Recorded',
     'modal.dup_body':         'A payment was already recorded for this house and month:',
@@ -90,6 +92,7 @@ const TRANSLATIONS = {
     'dashboard.all_houses':   'ಎಲ್ಲಾ ಮನೆಗಳು',
     'dashboard.total':        'ಒಟ್ಟು ಸಂಗ್ರಹ',
     'dashboard.loading':      'ಲೋಡ್ ಆಗುತ್ತಿದೆ…',
+    'dashboard.retry_btn':    '🔕 ಮರು-ಕಳುಹಿಸಿ',
 
     'month.1':  'ಜನವರಿ',    'month.2':  'ಫೆಬ್ರವರಿ',  'month.3':  'ಮಾರ್ಚ್',
     'month.4':  'ಏಪ್ರಿಲ್',  'month.5':  'ಮೇ',          'month.6':  'ಜೂನ್',
@@ -107,6 +110,7 @@ const TRANSLATIONS = {
     'msg.no_records':         'ಆಯ್ಕೆ ಮಾಡಿದ ಫಿಲ್ಟರ್‌ಗಳಿಗೆ ದಾಖಲೆಗಳಿಲ್ಲ.',
     'msg.all_of':             'ಎಲ್ಲಾ',
     'msg.payments':           'ಪಾವತಿಗಳು',
+    'msg.notif_retried':      'ಅಧಿಸೂಚನೆಗಳು ಮರುಕಳುಹಿಸಲಾಗಿದೆ',
 
     'modal.dup_title':        '⚠️ ಈಗಾಗಲೇ ದಾಖಲಾಗಿದೆ',
     'modal.dup_body':         'ಈ ಮನೆ ಮತ್ತು ತಿಂಗಳಿಗೆ ಪಾವತಿ ಈಗಾಗಲೇ ದಾಖಲಾಗಿದೆ:',

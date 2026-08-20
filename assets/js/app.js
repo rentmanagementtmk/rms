@@ -184,7 +184,24 @@ function populateYearSelect(el) {
 
 // Single source of truth for house display name — update here when tenant name is added
 function houseLabel(h) {
-  return `${h.building} ${h.displayNum}`;
+  const base   = `${h.building} ${h.displayNum}`;
+  const tenant = HOUSE_CACHE[h.id]?.TenantName || '';
+  return tenant ? `${base} - ${tenant}` : base;
+}
+
+// houseId → full house row from Masters_Houses (loaded once on page init)
+let HOUSE_CACHE = {};
+
+/** Returns true when a notification was not successfully delivered */
+function notifFailed(status) {
+  return status !== 'SENT' && status !== true && status !== '' && status != null;
+}
+
+async function loadHouseCache() {
+  try {
+    const res = await apiGet({ action: 'getHouses' });
+    if (res.houses) res.houses.forEach(h => { HOUSE_CACHE[h.HouseID] = h; });
+  } catch (_) { /* graceful degradation — labels show without tenant name */ }
 }
 
 function populateHouseSelect(el) {
@@ -202,7 +219,9 @@ function populateHouseSelect(el) {
 }
 
 // ─── COLLECT PAGE ─────────────────────────────────────────────────────────────
-function initCollectPage() {
+async function initCollectPage() {
+  await loadHouseCache();
+
   const monthSel  = document.getElementById('rent-month');
   const yearSel   = document.getElementById('rent-year');
   populateMonthSelect(monthSel);
@@ -241,11 +260,13 @@ function initCollectPage() {
 
   function showForm(house) {
     currentHouse = house;
-    const entry = HOUSES.find(x => x.id === house.HouseID);
-    const friendlyName = entry ? `${entry.building} ${entry.displayNum}` : house.HouseLabel;
+    const entry       = HOUSES.find(x => x.id === house.HouseID);
+    const baseName    = entry ? `${entry.building} ${entry.displayNum}` : house.HouseLabel;
+    const tenantName  = house.TenantName || '';
+    const displayLine = tenantName ? `${baseName} - ${tenantName}` : baseName;
     houseInfoEl.innerHTML = `
       <p class="house-building">${house.BuildingName}</p>
-      <p class="house-name">${friendlyName}</p>
+      <p class="house-name">${displayLine}</p>
       <p class="house-id">${house.HouseID}</p>
     `;
     scanSection.classList.add('hidden');
@@ -378,7 +399,9 @@ function initCollectPage() {
 }
 
 // ─── DASHBOARD PAGE ───────────────────────────────────────────────────────────
-function initDashboardPage() {
+async function initDashboardPage() {
+  await loadHouseCache();
+
   const filterYear  = document.getElementById('filter-year');
   const filterMonth = document.getElementById('filter-month');
   const filterHouse = document.getElementById('filter-house');
@@ -442,7 +465,7 @@ function initDashboardPage() {
           rowsHtml += `
             <div class="house-row unpaid">
               <div class="row-info">
-                <span class="row-label">${h.building} ${h.displayNum}</span>
+                <span class="row-label">${houseLabel(h)}</span>
               </div>
               <span class="row-amount no-pay">—</span>
             </div>`;
@@ -450,11 +473,13 @@ function initDashboardPage() {
           const hasDup = isMonthSelected && payments.length > 1;
 
           if (hasDup) {
-            // Consolidated row: total + per-payment split lines always visible
             const total = payments.reduce((s, p) => s + p.AmountReceived, 0);
             buildingTotal += total;
             grandTotal    += total;
             const monthLabel  = `${t('month.' + payments[0].RentForMonth)} ${payments[0].RentForYear}`;
+            const tenant      = HOUSE_CACHE[h.id]?.TenantName || '';
+            const rowLabel    = tenant ? `${h.building} ${h.displayNum} - ${tenant}` : `${h.building} ${h.displayNum}`;
+            const bell        = payments.some(p => notifFailed(p.NotificationSent)) ? ' 🔕' : '';
             const splitLines  = payments.map(p =>
               `<div class="dup-split">
                 <span class="split-amount">${inr(p.AmountReceived)}</span>
@@ -464,7 +489,7 @@ function initDashboardPage() {
             rowsHtml += `
               <div class="house-row paid dup-entry">
                 <div class="row-info">
-                  <span class="row-label">${h.building} ${h.displayNum} ⚠️</span>
+                  <span class="row-label">${rowLabel} ⚠️${bell}</span>
                   <span class="row-sub">${monthLabel} · ${payments.length} ${t('msg.payments')}</span>
                   <div class="dup-splits">${splitLines}</div>
                 </div>
@@ -474,10 +499,13 @@ function initDashboardPage() {
             payments.forEach(p => {
               buildingTotal += p.AmountReceived;
               grandTotal    += p.AmountReceived;
+              const tenant2   = HOUSE_CACHE[h.id]?.TenantName || '';
+              const rowLabel2 = tenant2 ? `${h.building} ${h.displayNum} - ${tenant2}` : `${h.building} ${h.displayNum}`;
+              const bell2     = notifFailed(p.NotificationSent) ? ' 🔕' : '';
               rowsHtml += `
               <div class="house-row paid">
                 <div class="row-info">
-                  <span class="row-label">${h.building} ${h.displayNum}</span>
+                  <span class="row-label">${rowLabel2}${bell2}</span>
                   <span class="row-sub">${t('month.' + p.RentForMonth)} ${p.RentForYear}</span>
                   <span class="row-date">${formatDate(p.CollectedDate)}</span>
                 </div>
@@ -502,8 +530,13 @@ function initDashboardPage() {
 
     if (!cardsHtml) {
       resultsEl.innerHTML = `<p class="msg-empty">${t('msg.no_records')}</p>`;
+      document.getElementById('retry-btn')?.classList.add('hidden');
       return;
     }
+
+    // Show retry button only when filtered data contains DISCONNECTED records
+    const hasDisconnected = records.some(r => r.NotificationSent === 'DISCONNECTED');
+    document.getElementById('retry-btn')?.classList.toggle('hidden', !hasDisconnected);
 
     const periodLabel = filterMonth.value
       ? `${t('month.' + filterMonth.value)} ${filterYear.value}`
@@ -521,6 +554,25 @@ function initDashboardPage() {
   }
 
   [filterYear, filterMonth, filterHouse].forEach(el => el.addEventListener('change', load));
+
+  const retryBtn = document.getElementById('retry-btn');
+  if (retryBtn) {
+    retryBtn.addEventListener('click', async () => {
+      retryBtn.disabled = true;
+      retryBtn.textContent = '…';
+      try {
+        const res = await apiGet({ action: 'retryDisconnected' });
+        showToast(`${res.succeeded}/${res.retried} ${t('msg.notif_retried')}`, res.succeeded > 0 ? 'success' : 'warning');
+        load();
+      } catch {
+        showToast(t('msg.network_error'), 'error');
+      } finally {
+        retryBtn.disabled    = false;
+        retryBtn.textContent = t('dashboard.retry_btn');
+      }
+    });
+  }
+
   load();
 }
 
