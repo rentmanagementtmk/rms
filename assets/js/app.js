@@ -257,15 +257,26 @@ function loadHouseCache() {
 
 function _renderHouseSelect(el) {
   const savedVal = el.value;
-  // Remove only optgroups so placeholder options (value='') are preserved
   Array.from(el.children).filter(c => c.tagName === 'OPTGROUP').forEach(c => c.remove());
   BUILDINGS.forEach(building => {
     const grp = document.createElement('optgroup');
     grp.label = building;
     HOUSES.filter(h => h.building === building).forEach(h => {
-      const opt = document.createElement('option');
-      opt.value = h.id;
-      opt.textContent = houseLabel(h);
+      const opt    = document.createElement('option');
+      opt.value    = h.id;
+      const cached = HOUSE_CACHE[h.id];
+      // IsActive can be boolean true or string 'TRUE' depending on sheet format
+      const active  = cached ? (cached.IsActive === true || String(cached.IsActive).toUpperCase() === 'TRUE') : true;
+      const tenant  = cached?.TenantName || '';
+      const base    = `${h.building} ${h.displayNum}`;
+      if (!active) {
+        opt.textContent = `${base} — Vacant`;
+        opt.disabled    = true;
+      } else if (!tenant) {
+        opt.textContent = `${base} ⚠️`;
+      } else {
+        opt.textContent = `${base} - ${tenant}`;
+      }
       grp.appendChild(opt);
     });
     el.appendChild(grp);
@@ -376,6 +387,7 @@ async function initCollectPage() {
         try {
           const res = await apiGet({ action: 'getHouse', qr: qrValue });
           hideLoader();
+          if (res.error === 'VACANT') return showToast(t('msg.house_vacant'), 'warning');
           if (res.error) return showToast(t('msg.house_not_found'), 'error');
           showForm(res.house);
         } catch {
@@ -404,6 +416,7 @@ async function initCollectPage() {
     showLoader();
     try {
       const res = await apiGet({ action: 'getHouse', qr: houseId });
+      if (res.error === 'VACANT') { showToast(t('msg.house_vacant'), 'warning'); return; }
       if (res.error) { showToast(t('msg.house_not_found'), 'error'); return; }
       manualSection.classList.add('hidden');
       showForm(res.house);

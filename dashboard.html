@@ -69,6 +69,26 @@
 
   </main>
 
+  <!-- Page loader and validate/dup modal — shared with index.html logic -->
+  <div id="page-loader" class="page-loader hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="dup-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <p id="dup-title"  class="modal-title"></p>
+      <p id="dup-body"   class="modal-body"></p>
+      <div id="dup-existing" class="dup-record"></div>
+      <p id="dup-question" class="modal-question"></p>
+      <div class="btn-group">
+        <button id="dup-cancel"  class="btn btn-secondary"></button>
+        <button id="dup-confirm" class="btn btn-primary"></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
   <script src="assets/js/i18n.js"></script>
   <script src="assets/js/app.js"></script>
 </body>

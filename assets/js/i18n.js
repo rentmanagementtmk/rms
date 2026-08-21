@@ -39,6 +39,7 @@ const TRANSLATIONS = {
     'month.10': 'October',   'month.11': 'November',   'month.12': 'December',
 
     'msg.house_not_found':    'House not found for this QR code.',
+    'msg.house_vacant':       'This house is vacant — no payment can be recorded.',
     'msg.network_error':      'Network error — please try again.',
     'msg.camera_denied':      'Camera access denied. Use manual entry below.',
     'msg.select_house':       'Please select a house.',
@@ -100,6 +101,7 @@ const TRANSLATIONS = {
     'month.10': 'ಅಕ್ಟೋಬರ್', 'month.11': 'ನವೆಂಬರ್',    'month.12': 'ಡಿಸೆಂಬರ್',
 
     'msg.house_not_found':    'ಈ QR ಕೋಡ್‌ಗೆ ಮನೆ ಕಂಡುಬಂದಿಲ್ಲ.',
+    'msg.house_vacant':       'ಈ ಮನೆ ಖಾಲಿಯಾಗಿದೆ — ಪಾವತಿ ದಾಖಲಿಸಲಾಗುವುದಿಲ್ಲ.',
     'msg.network_error':      'ನೆಟ್‌ವರ್ಕ್ ದೋಷ — ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
     'msg.camera_denied':      'ಕ್ಯಾಮೆರಾ ಪ್ರವೇಶ ನಿರಾಕರಿಸಲಾಗಿದೆ. ಕೆಳಗೆ ಹಸ್ತಚಾಲಿತ ಆಯ್ಕೆ ಬಳಸಿ.',
     'msg.select_house':       'ದಯವಿಟ್ಟು ಮನೆ ಆಯ್ಕೆ ಮಾಡಿ.',
