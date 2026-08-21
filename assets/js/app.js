@@ -95,7 +95,7 @@ function showValidateResult(res) {
   const cancelBtn  = document.getElementById('dup-cancel');
   const confirmBtn = document.getElementById('dup-confirm');
 
-  document.getElementById('dup-title').textContent    = '⚙️ Masters Validation';
+  document.getElementById('dup-title').textContent    = '📋 Masters Validation';
   document.getElementById('dup-body').textContent     = '';
   document.getElementById('dup-question').textContent = '';
   cancelBtn.textContent  = 'Close';
