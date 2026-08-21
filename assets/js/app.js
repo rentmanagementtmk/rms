@@ -82,11 +82,18 @@ function showLoader() { document.getElementById('page-loader').classList.remove(
 function hideLoader() { document.getElementById('page-loader').classList.add('hidden'); }
 
 function showValidateResult(res) {
+  const renderItem = item => {
+    const msg = t('validate.err.' + item.code).replace('{value}', item.value || '');
+    return `<li><strong>${item.house}:</strong> ${msg}</li>`;
+  };
+
+  const summary = `✅ ${res.passed} ${t('validate.passed')}  ❌ ${res.issues.length} ${t('validate.issues_count')}  ⚠️ ${res.warnings.length} ${t('validate.warnings_count')}`;
+
   const lines = [
-    `<div class="val-summary">${res.summary}</div>`,
-    ...(res.issues.length   ? [`<p class="val-section-label">❌ Issues</p>`,   `<ul class="val-list">${res.issues.map(i   => `<li>${i}</li>`).join('')}</ul>`] : []),
-    ...(res.warnings.length ? [`<p class="val-section-label">⚠️ Warnings</p>`, `<ul class="val-list">${res.warnings.map(w => `<li>${w}</li>`).join('')}</ul>`] : []),
-    ...(res.issues.length === 0 && res.warnings.length === 0 ? ['<p class="val-ok">All masters data is complete ✅</p>'] : []),
+    `<div class="val-summary">${summary}</div>`,
+    ...(res.issues.length   ? [`<p class="val-section-label">${t('validate.issues')}</p>`,   `<ul class="val-list">${res.issues.map(renderItem).join('')}</ul>`]   : []),
+    ...(res.warnings.length ? [`<p class="val-section-label">${t('validate.warnings')}</p>`, `<ul class="val-list">${res.warnings.map(renderItem).join('')}</ul>`] : []),
+    ...(res.issues.length === 0 && res.warnings.length === 0 ? [`<p class="val-ok">${t('validate.all_ok')}</p>`] : []),
   ].join('');
 
   // Reuse dup-modal structure for the result overlay
@@ -95,10 +102,10 @@ function showValidateResult(res) {
   const cancelBtn  = document.getElementById('dup-cancel');
   const confirmBtn = document.getElementById('dup-confirm');
 
-  document.getElementById('dup-title').textContent    = '📋 Masters Validation';
+  document.getElementById('dup-title').textContent    = t('validate.title');
   document.getElementById('dup-body').textContent     = '';
   document.getElementById('dup-question').textContent = '';
-  cancelBtn.textContent  = 'Close';
+  cancelBtn.textContent  = t('validate.close');
   confirmBtn.classList.add('hidden');
   detailEl.innerHTML = lines;
   modal.classList.remove('hidden');

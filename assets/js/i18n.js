@@ -62,6 +62,24 @@ const TRANSLATIONS = {
     'modal.amount':           'Amount',
     'modal.collected':        'Date & Time',
     'modal.total':            'Total',
+
+    'validate.title':         '📋 Masters Validation',
+    'validate.issues':        '❌ Issues',
+    'validate.warnings':      '⚠️ Warnings',
+    'validate.all_ok':        'All masters data is complete ✅',
+    'validate.close':         'Close',
+    'validate.passed':        'passed',
+    'validate.issues_count':  'issues',
+    'validate.warnings_count':'warnings',
+
+    'validate.err.MISSING_PHONE':          "Missing Phone1 in Masters_Tenants — notifications disabled",
+    'validate.err.MISSING_EXPECTED_RENT':  "Missing ExpectedRent — balance & reminders disabled",
+    'validate.err.MISSING_OCCUPANCY_DATE': "Missing OccupancyDate — pro-rate & increment disabled",
+    'validate.err.INVALID_EXPECTED_RENT':  "ExpectedRent '{value}' must be a positive number",
+    'validate.err.INVALID_OCCUPANCY_DATE': "OccupancyDate '{value}' is not a valid date",
+    'validate.err.FUTURE_OCCUPANCY_DATE':  "OccupancyDate '{value}' is in the future — house cannot be active",
+    'validate.err.FUTURE_INCREMENT_YEAR':  "LastIncrementYear {value} is in the future",
+    'validate.err.NO_TENANT_NAME':         "No TenantName in Masters_Tenants — notification will say 'Tenant'",
   },
 
   kn: {
@@ -124,7 +142,23 @@ const TRANSLATIONS = {
     'modal.amount':           'ಮೊತ್ತ',
     'modal.collected':        'ದಿನಾಂಕ & ಸಮಯ',
     'modal.total':            'ಒಟ್ಟು ಮೊತ್ತ',
-  },
+
+    'validate.title':         '📋 ಮಾಸ್ಟರ್ ಪರಿಶೀಲನೆ',
+    'validate.issues':        '❌ ತಪ್ಪುಗಳು',
+    'validate.warnings':      '⚠️ ಎಚ್ಚರಿಕೆಗಳು',
+    'validate.all_ok':        'ಎಲ್ಲಾ ಮಾಸ್ಟರ್ ದತ್ತಾಂಶ ಸಮ್ಪೂರ್ಣವಾಗಿದೆ ✅',
+    'validate.close':         'ಮುಚ್ಚಿ',    'validate.passed':        'ಉತ್ತೀರ್ಣ',
+    'validate.issues_count':  'ತಪ್ಪುಗಳು',
+    'validate.warnings_count':'ಎಚ್ಚರಿಕೆಗಳು',
+
+    'validate.err.MISSING_PHONE':          "Masters_Tenants ನಲ್ಲಿ Phone1 ಇಲ್ಲ — ಅಧಿಸೂಚನೆಗಳು ನಿಷ್ಕ್ರಿಯ",
+    'validate.err.MISSING_EXPECTED_RENT':  "ExpectedRent ಇಲ್ಲ — ಬಾಕಿ ಮತ್ತು ಜ್ಞಾಪನೆ ನಿಷ್ಕ್ರಿಯ",
+    'validate.err.MISSING_OCCUPANCY_DATE': "OccupancyDate ಇಲ್ಲ — ಪ್ರೊ-ರೇಟ್ ಮತ್ತು ಏರಿಕೆ ನಿಷ್ಕ್ರಿಯ",
+    'validate.err.INVALID_EXPECTED_RENT':  "ExpectedRent '{value}' ಮಾನ್ಯ ಸಂಖ್ಯೆಯಾಗಿರಬೇಕು",
+    'validate.err.INVALID_OCCUPANCY_DATE': "OccupancyDate '{value}' ಮಾನ್ಯ ದಿನಾಂಕವಾಗಿರಬೇಕು",
+    'validate.err.FUTURE_OCCUPANCY_DATE':  "OccupancyDate '{value}' ಭವಿಷ್ಯದಲ್ಲಿದೆ — ಸಕ್ರಿಯ ಮನೆಗೆ ಸಾಧ್ಯವಿಲ್ಲ",
+    'validate.err.FUTURE_INCREMENT_YEAR':  "LastIncrementYear {value} ಭವಿಷ್ಯದಲ್ಲಿದೆ",
+    'validate.err.NO_TENANT_NAME':         "Masters_Tenants ನಲ್ಲಿ TenantName ಇಲ್ಲ — 'Tenant' ಎಂದು ಕಳುಹಿಸಲಾಗುತ್ತದೆ",  },
 };
 
 // ─── LOCALE API ───────────────────────────────────────────────────────────────
