@@ -1,0 +1,237 @@
+'use strict';
+
+// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  en: {
+    'header.dashboard':       'Dashboard',
+    'header.collect':         'Rent',
+    'header.report':          'Summary',
+    'header.lang_toggle':     'ಕನ್ನಡ',
+
+    'collect.title':          'Rent Payment',
+    'collect.subtitle':       'Scan the house QR code to begin',
+    'collect.scan_btn':       'Scan QR Code',
+    'collect.manual_toggle':  'Enter house manually',
+    'collect.cancel':         'Cancel',
+    'collect.select_house':   'Select House',
+    'collect.house_ph':       '— select a house —',
+    'collect.continue':       'Continue',
+    'collect.amount_label':   'Amount Received (₹)',
+    'collect.amount_ph':      'e.g. 8000',
+    'collect.month_label':    'Rent For Month',
+    'collect.year_label':     'Year',
+    'collect.back':           '← Back',
+    'collect.save':           'Save',
+    'collect.saving':         'Saving…',
+
+    'dashboard.filter':       'Filter',
+    'dashboard.year_label':   'Year',
+    'dashboard.month_label':  'Month',
+    'dashboard.all_months':   'All Months',
+    'dashboard.house_label':  'House (optional)',
+    'dashboard.all_houses':   'All Houses',
+    'dashboard.all_building':  'All {name} ({count})',
+    'dashboard.total':        'Total Collected',
+    'dashboard.loading':      'Loading…',
+    'dashboard.retry_btn':    '🔕 Retry',
+
+    'month.1':  'January',   'month.2':  'February',  'month.3':  'March',
+    'month.4':  'April',     'month.5':  'May',        'month.6':  'June',
+    'month.7':  'July',      'month.8':  'August',     'month.9':  'September',
+    'month.10': 'October',   'month.11': 'November',   'month.12': 'December',
+
+    'msg.house_not_found':    'House not found for this QR code.',
+    'msg.house_vacant':       'This house is vacant — no payment can be recorded.',
+    'msg.network_error':      'Network error — please try again.',
+    'msg.camera_denied':      'Camera access denied. Use manual entry below.',
+    'msg.select_house':       'Please select a house.',
+    'msg.invalid_amount':     'Enter a valid amount.',
+    'msg.saved':              'Saved!',
+    'msg.duplicate_prefix':   'Saved! Note: a record already exists for',
+    'msg.net_check':          'Network error — check your connection.',
+    'msg.no_records':         'No records found for the selected filters.',
+    'msg.all_of':             'All of',
+    'msg.payments':           'payments',
+    'msg.notif_retried':      'notifications retried',
+    'msg.prebooked':          'Pre-booked · moves in',
+    'msg.balance':            'Balance:',
+    'msg.increment_detail':   '⬆️ New rent {rent} from {date} (+{inc})',
+    'dot.paid':               'Rent paid',
+    'dot.due':                'Rent due ≤ 1 month',
+    'dot.overdue':            'Overdue > 2 months',
+    'dot.vacant':             'Vacant — no tenant assigned',
+    'tip.increment':          'Rent increment due next month',
+    'tip.notif_failed':       'WhatsApp notification failed',
+    'tip.duplicate':          'Duplicate payment recorded',
+    'tip.validate':           'Health check — validate masters data',
+    'tip.refresh':            'Refresh dashboard',
+
+    'report.col_house':        'House',
+    'report.col_rent':         'Rent',
+    'report.col_paid':         'Paid',
+    'report.col_balance':      'Balance',
+    'report.col_increment':    'Next Increment',
+    'report.vacant':           'Vacant',
+    'msg.loading':             'Loading…',
+    'modal.dup_body':         'A payment was already recorded for this house and month:',
+    'modal.dup_body_multi':   'already recorded for this house and month:',
+    'modal.dup_question':     'Save another entry anyway?',
+    'modal.save_anyway':      'Save Anyway',
+    'modal.house':            'House',
+    'modal.month':            'Month',
+    'modal.amount':           'Amount',
+    'modal.collected':        'Date & Time',
+    'modal.total':            'Total',
+
+    'validate.title':         '📋 Masters Validation',
+    'validate.issues':        '❌ Issues',
+    'validate.warnings':      '⚠️ Warnings',
+    'validate.all_ok':        'All masters data is complete ✅',
+    'validate.close':         'Close',
+    'validate.passed':        'passed',
+    'validate.issues_count':  'issues',
+    'validate.warnings_count':'warnings',
+
+    'validate.err.MISSING_PHONE':          "Missing Phone1 in Masters_Tenants — notifications disabled",
+    'validate.err.MISSING_EXPECTED_RENT':  "Missing ExpectedRent — balance & reminders disabled",
+    'validate.err.MISSING_OCCUPANCY_DATE': "Missing OccupancyDate — pro-rate & increment disabled",
+    'validate.err.INVALID_EXPECTED_RENT':  "ExpectedRent '{value}' must be a positive number",
+    'validate.err.INVALID_OCCUPANCY_DATE': "OccupancyDate '{value}' is not a valid date",
+    'validate.err.FUTURE_OCCUPANCY_DATE':  "OccupancyDate '{value}' is in the future — house cannot be active",
+    'validate.err.FUTURE_INCREMENT_YEAR':  "LastIncrementYear {value} is in the future",
+    'validate.err.NO_TENANT_NAME':         "No TenantName in Masters_Tenants — notification will say 'Tenant'",
+  },
+
+  kn: {
+    'header.dashboard':       'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+    'header.collect':         'ಬಾಡಿಗೆ',    'header.report':          'ಸಾರಾಂಶ',    'header.lang_toggle':     'English',
+
+    'collect.title':          'ಬಾಡಿಗೆ ಪಾವತಿ',
+    'collect.subtitle':       'ಮನೆಯ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+    'collect.scan_btn':       'QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+    'collect.manual_toggle':  'ಹಸ್ತಚಾಲಿತವಾಗಿ ಮನೆ ಆಯ್ಕೆ ಮಾಡಿ',
+    'collect.cancel':         'ರದ್ದುಮಾಡಿ',
+    'collect.select_house':   'ಮನೆ ಆಯ್ಕೆ',
+    'collect.house_ph':       '— ಮನೆ ಆಯ್ಕೆ ಮಾಡಿ —',
+    'collect.continue':       'ಮುಂದುವರಿಸಿ',
+    'collect.amount_label':   'ಸ್ವೀಕರಿಸಿದ ಮೊತ್ತ (₹)',
+    'collect.amount_ph':      'ಉದಾ. 8000',
+    'collect.month_label':    'ಬಾಡಿಗೆ ತಿಂಗಳಿಗೆ',
+    'collect.year_label':     'ವರ್ಷ',
+    'collect.back':           '← ಹಿಂದೆ',
+    'collect.save':           'ಉಳಿಸಿ',
+    'collect.saving':         'ಉಳಿಸಲಾಗುತ್ತಿದೆ…',
+
+    'dashboard.filter':       'ಫಿಲ್ಟರ್',
+    'dashboard.year_label':   'ವರ್ಷ',
+    'dashboard.month_label':  'ತಿಂಗಳು',
+    'dashboard.all_months':   'ಎಲ್ಲಾ ತಿಂಗಳುಗಳು',
+    'dashboard.house_label':  'ಮನೆ (ಐಚ್ಛಿಕ)',
+    'dashboard.all_houses':   'ಎಲ್ಲಾ ಮನೆಗಳು',
+    'dashboard.all_building':  'ಎಲ್ಲಾ {name} ({count})',
+    'dashboard.total':        'ಒಟ್ಟು ಸಂಗ್ರಹ',
+    'dashboard.loading':      'ಲೋಡ್ ಆಗುತ್ತಿದೆ…',
+    'dashboard.retry_btn':    '🔕 ಮರು-ಕಳುಹಿಸಿ',
+
+    'month.1':  'ಜನವರಿ',    'month.2':  'ಫೆಬ್ರವರಿ',  'month.3':  'ಮಾರ್ಚ್',
+    'month.4':  'ಏಪ್ರಿಲ್',  'month.5':  'ಮೇ',          'month.6':  'ಜೂನ್',
+    'month.7':  'ಜುಲೈ',     'month.8':  'ಆಗಸ್ಟ್',      'month.9':  'ಸೆಪ್ಟೆಂಬರ್',
+    'month.10': 'ಅಕ್ಟೋಬರ್', 'month.11': 'ನವೆಂಬರ್',    'month.12': 'ಡಿಸೆಂಬರ್',
+
+    'msg.house_not_found':    'ಈ QR ಕೋಡ್‌ಗೆ ಮನೆ ಕಂಡುಬಂದಿಲ್ಲ.',
+    'msg.house_vacant':       'ಈ ಮನೆ ಖಾಲಿಯಾಗಿದೆ — ಪಾವತಿ ದಾಖಲಿಸಲಾಗುವುದಿಲ್ಲ.',
+    'msg.network_error':      'ನೆಟ್‌ವರ್ಕ್ ದೋಷ — ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
+    'msg.camera_denied':      'ಕ್ಯಾಮೆರಾ ಪ್ರವೇಶ ನಿರಾಕರಿಸಲಾಗಿದೆ. ಕೆಳಗೆ ಹಸ್ತಚಾಲಿತ ಆಯ್ಕೆ ಬಳಸಿ.',
+    'msg.select_house':       'ದಯವಿಟ್ಟು ಮನೆ ಆಯ್ಕೆ ಮಾಡಿ.',
+    'msg.invalid_amount':     'ಸರಿಯಾದ ಮೊತ್ತ ನಮೂದಿಸಿ.',
+    'msg.saved':              'ಉಳಿಸಲಾಗಿದೆ!',
+    'msg.duplicate_prefix':   'ಉಳಿಸಲಾಗಿದೆ! ಗಮನಿಸಿ: ಈ ತಿಂಗಳಿಗೆ ದಾಖಲೆ ಈಗಾಗಲೇ ಇದೆ',
+    'msg.net_check':          'ನೆಟ್‌ವರ್ಕ್ ದೋಷ — ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ.',
+    'msg.no_records':         'ಆಯ್ಕೆ ಮಾಡಿದ ಫಿಲ್ಟರ್‌ಗಳಿಗೆ ದಾಖಲೆಗಳಿಲ್ಲ.',
+    'msg.all_of':             'ಎಲ್ಲಾ',
+    'msg.payments':           'ಪಾವತಿಗಳು',
+    'msg.notif_retried':      'ಅಧಿಸೂಚನೆಗಳು ಮರುಕಳುಹಿಸಲಾಗಿದೆ',
+    'msg.prebooked':          'ಮುಂಗಡ ಬುಕಿಂಗ್ · ಪ್ರವೇಶ ದಿನಾಂಕ',
+    'msg.balance':            'ಬಾಕಿ:',
+    'msg.increment_detail':   '⬆️ ಹೊಸ ಬಾಡಿಗೆ {rent} {date} ರಿಂದ (+{inc})',
+    'dot.paid':               'ಬಾಡಿಗೆ ಪಾವತಿಯಾಗಿದೆ',
+    'dot.due':                'ಬಾಡಿಗೆ ಬಾಕಿ ≤ ೧ ತಿಂಗಳು',
+    'dot.overdue':            'ಬಾಕಿ > ೨ ತಿಂಗಳು',
+    'dot.vacant':             'ಮನೆ ಖಾಲಿಯಿದೆ',
+    'tip.increment':          'ಮುಂದಿನ ತಿಂಗಳು ಬಾಡಿಗೆ ಏರಿಕೆಯಾಗಲಿದೆ',
+    'tip.notif_failed':       'WhatsApp ಅಧಿಸೂಚನೆ ವಿಫಲಾಗಿದೆ',
+    'tip.duplicate':          'ದ್ವಿತೀಯ ಪಾವತಿ ದಾಖಲಾಗಿದೆ',
+    'tip.validate':           'ಮಾಸ್ಟರ್ ಡೇಟಾ ಪರಿಶೀಲಿಸಿ',
+    'tip.refresh':            'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ನವೀಕರಿಸಿ',
+
+    'report.col_house':        'ಮನೆ',
+    'report.col_rent':         'ಬಾಡಿಗೆ',
+    'report.col_paid':         'ಪಾವತಿ',
+    'report.col_balance':      'ಬಾಕಿ',
+    'report.col_increment':    'ಮುಂದಿನ ಏರಿಕೆ',
+    'report.vacant':           'ಖಾಲಿ',
+    'msg.loading':             'ಲೋಡ್ ಆಗುತ್ತಿದೆ…',
+    'modal.dup_body':         'ಈ ಮನೆ ಮತ್ತು ತಿಂಗಳಿಗೆ ಪಾವತಿ ಈಗಾಗಲೇ ದಾಖಲಾಗಿದೆ:',
+    'modal.dup_body_multi':   'ಈ ಮನೆ ಮತ್ತು ತಿಂಗಳಿಗೆ ಈಗಾಗಲೇ ದಾಖಲಾಗಿವೆ:',
+    'modal.dup_question':     'ಇನ್ನೊಂದು ದಾಖಲೆ ಉಳಿಸಲಾ?',
+    'modal.save_anyway':      'ಹೌದು, ಉಳಿಸಿ',
+    'modal.house':            'ಮನೆ',
+    'modal.month':            'ತಿಂಗಳು',
+    'modal.amount':           'ಮೊತ್ತ',
+    'modal.collected':        'ದಿನಾಂಕ & ಸಮಯ',
+    'modal.total':            'ಒಟ್ಟು ಮೊತ್ತ',
+
+    'validate.title':         '📋 ಮಾಸ್ಟರ್ ಪರಿಶೀಲನೆ',
+    'validate.issues':        '❌ ತಪ್ಪುಗಳು',
+    'validate.warnings':      '⚠️ ಎಚ್ಚರಿಕೆಗಳು',
+    'validate.all_ok':        'ಎಲ್ಲಾ ಮಾಸ್ಟರ್ ದತ್ತಾಂಶ ಸಮ್ಪೂರ್ಣವಾಗಿದೆ ✅',
+    'validate.close':         'ಮುಚ್ಚಿ',    'validate.passed':        'ಉತ್ತೀರ್ಣ',
+    'validate.issues_count':  'ತಪ್ಪುಗಳು',
+    'validate.warnings_count':'ಎಚ್ಚರಿಕೆಗಳು',
+
+    'validate.err.MISSING_PHONE':          "Masters_Tenants ನಲ್ಲಿ Phone1 ಇಲ್ಲ — ಅಧಿಸೂಚನೆಗಳು ನಿಷ್ಕ್ರಿಯ",
+    'validate.err.MISSING_EXPECTED_RENT':  "ExpectedRent ಇಲ್ಲ — ಬಾಕಿ ಮತ್ತು ಜ್ಞಾಪನೆ ನಿಷ್ಕ್ರಿಯ",
+    'validate.err.MISSING_OCCUPANCY_DATE': "OccupancyDate ಇಲ್ಲ — ಪ್ರೊ-ರೇಟ್ ಮತ್ತು ಏರಿಕೆ ನಿಷ್ಕ್ರಿಯ",
+    'validate.err.INVALID_EXPECTED_RENT':  "ExpectedRent '{value}' ಮಾನ್ಯ ಸಂಖ್ಯೆಯಾಗಿರಬೇಕು",
+    'validate.err.INVALID_OCCUPANCY_DATE': "OccupancyDate '{value}' ಮಾನ್ಯ ದಿನಾಂಕವಾಗಿರಬೇಕು",
+    'validate.err.FUTURE_OCCUPANCY_DATE':  "OccupancyDate '{value}' ಭವಿಷ್ಯದಲ್ಲಿದೆ — ಸಕ್ರಿಯ ಮನೆಗೆ ಸಾಧ್ಯವಿಲ್ಲ",
+    'validate.err.FUTURE_INCREMENT_YEAR':  "LastIncrementYear {value} ಭವಿಷ್ಯದಲ್ಲಿದೆ",
+    'validate.err.NO_TENANT_NAME':         "Masters_Tenants ನಲ್ಲಿ TenantName ಇಲ್ಲ — 'Tenant' ಎಂದು ಕಳುಹಿಸಲಾಗುತ್ತದೆ",  },
+};
+
+// ─── LOCALE API ───────────────────────────────────────────────────────────────
+function getLang() {
+  return localStorage.getItem('rms-lang') || 'en';
+}
+
+/** Returns the translated string for key, falling back to English */
+function t(key) {
+  const lang = getLang();
+  return (TRANSLATIONS[lang]?.[key]) ?? TRANSLATIONS.en[key] ?? key;
+}
+
+function setLang(lang) {
+  localStorage.setItem('rms-lang', lang);
+  location.reload();
+}
+
+// Updates [data-i18n] text and [data-i18n-placeholder] placeholder attributes
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.documentElement.lang = getLang();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyTranslations();
+
+  const btn = document.getElementById('lang-toggle');
+  if (btn) {
+    btn.classList.add(getLang() === 'kn' ? 'lang-kn-active' : 'lang-en-active');
+    btn.addEventListener('click', () => setLang(getLang() === 'kn' ? 'en' : 'kn'));
+  }
+});
