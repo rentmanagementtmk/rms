@@ -708,9 +708,12 @@ async function initDashboardPage() {
       return;
     }
 
-    // Show retry button only when filtered data contains DISCONNECTED records
-    const hasDisconnected = records.some(r => r.NotificationSent === 'DISCONNECTED');
-    document.getElementById('retry-btn')?.classList.toggle('hidden', !hasDisconnected);
+    // Show retry button when any visible record has a retryable failed notification
+    const hasRetryable = records.some(r => {
+      const s = String(r.NotificationSent || '').toUpperCase();
+      return s === 'DISCONNECTED' || s === 'FAILED';
+    });
+    document.getElementById('retry-btn')?.classList.toggle('hidden', !hasRetryable);
 
     const periodLabel = filterMonth.value
       ? `${t('month.' + filterMonth.value)} ${filterYear.value}`
