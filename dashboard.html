@@ -35,7 +35,8 @@
       <div class="filter-title-row">
         <h3 class="section-title" data-i18n="dashboard.filter">Filter</h3>
         <div style="display:flex;gap:0.5rem;align-items:center">
-          <button id="validate-btn" class="validate-btn" title="Health check — validate masters data">📋</button>
+          <button id="validate-btn" class="validate-btn tip" data-tip="Health check">📋</button>
+          <button id="refresh-btn"  class="validate-btn tip" data-tip="Refresh">🔄</button>
           <button id="retry-btn" class="retry-notif-btn hidden" data-i18n="dashboard.retry_btn">🔕 Retry</button>
         </div>
       </div>
@@ -53,7 +54,7 @@
       </div>
       <div class="field" style="margin-bottom:0">
         <label for="filter-house" data-i18n="dashboard.house_label">House (optional)</label>
-        <select id="filter-house">
+        <select id="filter-house" data-buildings="true">
           <option value="" data-i18n="dashboard.all_houses">All Houses</option>
         </select>
       </div>

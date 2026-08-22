@@ -181,7 +181,11 @@ function showDupModal(records) {
 }
 
 function inr(amount) {
-  return '₹' + Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const n = Number(amount);
+  const opts = Number.isInteger(n)
+    ? { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+    : { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  return '₹' + n.toLocaleString('en-IN', opts);
 }
 
 const _MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -285,11 +289,20 @@ function loadHouseCache() {
 }
 
 function _renderHouseSelect(el) {
-  const savedVal = el.value;
+  const savedVal        = el.value;
+  const includeBuildings = el.dataset.buildings === 'true';
   Array.from(el.children).filter(c => c.tagName === 'OPTGROUP').forEach(c => c.remove());
   BUILDINGS.forEach(building => {
     const grp = document.createElement('optgroup');
     grp.label = building;
+
+    if (includeBuildings) {
+      const count   = HOUSES.filter(h => h.building === building).length;
+      const bldgOpt = document.createElement('option');
+      bldgOpt.value       = `BLDG:${building}`;
+      bldgOpt.textContent = t('dashboard.all_building').replace('{name}', building).replace('{count}', count);
+      grp.appendChild(bldgOpt);
+    }
     HOUSES.filter(h => h.building === building).forEach(h => {
       const opt    = document.createElement('option');
       opt.value    = h.id;
@@ -533,8 +546,9 @@ async function initDashboardPage() {
     resultsEl.innerHTML = '';
 
     const params = { action: 'getDashboard', year: filterYear.value };
-    if (filterMonth.value) params.month   = filterMonth.value;
-    if (filterHouse.value) params.houseId = filterHouse.value;
+    if (filterMonth.value) params.month = filterMonth.value;
+    // BLDG: prefix = building-level filter, handled client-side; don't send houseId to server
+    if (filterHouse.value && !filterHouse.value.startsWith('BLDG:')) params.houseId = filterHouse.value;
 
     // Fetch balance summary alongside dashboard data (parallel)
     let balances = {};
@@ -562,10 +576,11 @@ async function initDashboardPage() {
     const byHouse = {};
     records.forEach(r => (byHouse[r.HouseID] = byHouse[r.HouseID] || []).push(r));
 
-    // When a specific house is chosen, show only its building
-    const targetBuilding = filterHouse.value
-      ? HOUSES.find(h => h.id === filterHouse.value)?.building
-      : null;
+    // Derive which building (and optionally which single house) to show
+    const isBldgFilter  = filterHouse.value.startsWith('BLDG:');
+    const targetBuilding = isBldgFilter
+      ? filterHouse.value.slice(5)
+      : (filterHouse.value ? HOUSES.find(h => h.id === filterHouse.value)?.building : null);
 
     const isMonthSelected = !!filterMonth.value;
     let grandTotal = 0;
@@ -578,7 +593,7 @@ async function initDashboardPage() {
       let rowsHtml = '';
 
       HOUSES.filter(h => h.building === building).forEach(h => {
-        if (filterHouse.value && h.id !== filterHouse.value) return;
+        if (filterHouse.value && !isBldgFilter && h.id !== filterHouse.value) return;
 
         const payments = byHouse[h.id] || [];
 
@@ -588,6 +603,10 @@ async function initDashboardPage() {
         const futureClass  = isFuture ? ' future-house' : '';
         const vacantClass  = isVacant ? ' vacant' : '';
         const today        = new Date();
+        const inc          = bEntry.upcomingIncrement;
+        const incLine      = inc
+          ? `<span class="row-sub row-increment">${t('msg.increment_detail').replace('{rent}', inr(inc.newRent)).replace('{date}', inc.effectiveDate).replace('{inc}', inr(inc.increment))}</span>`
+          : '';
 
         if (payments.length === 0) {
           const bal     = bEntry.balance || 0;
@@ -601,6 +620,7 @@ async function initDashboardPage() {
               <div class="row-info">
                 <span class="row-label">${houseLabel(h)}${incIcon}${dot}</span>
                 ${subLine}
+                ${incLine}
               </div>
               <span class="row-amount no-pay">—</span>
             </div>`;
@@ -616,7 +636,9 @@ async function initDashboardPage() {
             const rowLabel    = tenant ? `${h.building} ${h.displayNum} - ${tenant}` : `${h.building} ${h.displayNum}`;
             const bell        = payments.some(p => notifFailed(p.NotificationSent)) ? ` <span class="tip" data-tip="${t('tip.notif_failed')}">🔕</span>` : '';
             const incIcon     = bEntry.upcomingIncrement ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>` : '';
-            const dot         = balDot(0, bEntry.expectedRent || 0, today, false); // paid row
+            const histBal     = bEntry.balance || 0;
+            const dot         = balDot(histBal, bEntry.expectedRent || 0, today, false);
+            const balLine     = histBal > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(histBal)}</span>` : '';
             const splitLines  = payments.map(p =>
               `<div class="dup-split">
                 <span class="split-amount">${inr(p.AmountReceived)}</span>
@@ -628,6 +650,8 @@ async function initDashboardPage() {
                 <div class="row-info">
                   <span class="row-label">${rowLabel} <span class="tip" data-tip="${t('tip.duplicate')}">⚠️</span>${bell}${incIcon}${dot}</span>
                   <span class="row-sub">${monthLabel} · ${payments.length} ${t('msg.payments')}</span>
+                  ${balLine}
+                  ${incLine}
                   <div class="dup-splits">${splitLines}</div>
                 </div>
                 <span class="row-amount">${inr(total)}</span>
@@ -640,13 +664,17 @@ async function initDashboardPage() {
               const rowLabel2 = tenant2 ? `${h.building} ${h.displayNum} - ${tenant2}` : `${h.building} ${h.displayNum}`;
               const bell2     = notifFailed(p.NotificationSent) ? ` <span class="tip" data-tip="${t('tip.notif_failed')}">🔕</span>` : '';
               const incIcon2  = bEntry.upcomingIncrement ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>` : '';
-              const dot2      = balDot(0, bEntry.expectedRent || 0, today, false);
+              const histBal2  = bEntry.balance || 0;
+              const dot2      = balDot(histBal2, bEntry.expectedRent || 0, today, false);
+              const balLine2  = histBal2 > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(histBal2)}</span>` : '';
               rowsHtml += `
               <div class="house-row paid${futureClass}">
                 <div class="row-info">
                   <span class="row-label">${rowLabel2}${bell2}${incIcon2}${dot2}</span>
                   <span class="row-sub">${t('month.' + p.RentForMonth)} ${p.RentForYear}</span>
                   <span class="row-date">${formatDate(p.CollectedDate)}</span>
+                  ${balLine2}
+                  ${incLine}
                 </div>
                 <span class="row-amount">${inr(p.AmountReceived)}</span>
               </div>`;
@@ -696,6 +724,26 @@ async function initDashboardPage() {
 
   const retryBtn    = document.getElementById('retry-btn');
   const validateBtn = document.getElementById('validate-btn');
+  const refreshBtn  = document.getElementById('refresh-btn');
+
+  // Set tooltips in current language (static buttons can't use data-i18n pattern)
+  if (validateBtn) validateBtn.dataset.tip = t('tip.validate');
+  if (refreshBtn)  refreshBtn.dataset.tip  = t('tip.refresh');
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      const p = prevMonth();
+      filterYear.value  = p.year;
+      filterMonth.value = p.month;
+      filterHouse.value = '';
+      refreshBtn.disabled    = true;
+      refreshBtn.textContent = '⏳';
+      load().finally(() => {
+        refreshBtn.disabled    = false;
+        refreshBtn.textContent = '🔄';
+      });
+    });
+  }
 
   if (validateBtn) {
     validateBtn.addEventListener('click', async () => {
