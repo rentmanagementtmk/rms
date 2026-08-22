@@ -603,7 +603,9 @@ async function initDashboardPage() {
         const futureClass  = isFuture ? ' future-house' : '';
         const vacantClass  = isVacant ? ' vacant' : '';
         const today        = new Date();
-        const inc          = bEntry.upcomingIncrement;
+        // Guard against stale boolean (pre-redeploy) — only use if object with expected fields
+        const inc     = (bEntry.upcomingIncrement && typeof bEntry.upcomingIncrement === 'object')
+          ? bEntry.upcomingIncrement : null;
         const incLine      = inc
           ? `<span class="row-sub row-increment">${t('msg.increment_detail').replace('{rent}', inr(inc.newRent)).replace('{date}', inc.effectiveDate).replace('{inc}', inr(inc.increment))}</span>`
           : '';
