@@ -722,7 +722,10 @@ async function initDashboardPage() {
       ${cardsHtml}`;
   }
 
-  [filterYear, filterMonth, filterHouse].forEach(el => el.addEventListener('change', load));
+  // Debounce: wait 350ms after last change before firing API call
+  let _loadTimer = null;
+  function debouncedLoad() { clearTimeout(_loadTimer); _loadTimer = setTimeout(load, 350); }
+  [filterYear, filterMonth, filterHouse].forEach(el => el.addEventListener('change', debouncedLoad));
 
   const retryBtn    = document.getElementById('retry-btn');
   const validateBtn = document.getElementById('validate-btn');
@@ -783,9 +786,131 @@ async function initDashboardPage() {
   load();
 }
 
-// ─── BOOTSTRAP ────────────────────────────────────────────────────────────────
+// ─── REPORT PAGE ─────────────────────────────────────────────────────────────
+async function initReportPage() {
+  applyTranslations();
+  document.getElementById('lang-toggle')?.addEventListener('click', () =>
+    setLang(getLang() === 'en' ? 'kn' : 'en'));
+
+  const { month, year } = prevMonth();
+  const badge = document.getElementById('report-month-badge');
+  if (badge) badge.textContent = `${t('month.' + month)} ${year}`;
+
+  const contentEl = document.getElementById('report-content');
+  showLoader();
+  loadHouseCache();
+
+  // Building order as specified for the report sheet
+  const REPORT_ORDER = ['Spatika', 'Manikya', 'Jalanidhi', 'Vaidurya', 'Aparanji'];
+
+  try {
+    const [dashRes, balRes] = await Promise.all([
+      apiGet({ action: 'getDashboard', year, month }),
+      apiGet({ action: 'getBalanceSummary', year, month }),
+    ]);
+
+    const balances = balRes.balances || {};
+    const byHouse  = {};
+    (dashRes.records || []).forEach(r => (byHouse[r.HouseID] = byHouse[r.HouseID] || []).push(r));
+
+    const hdr = `<tr>
+      <th>${t('report.col_house')}</th>
+      <th>${t('report.col_rent')}</th>
+      <th>${t('report.col_paid')}</th>
+      <th>${t('report.col_balance')}</th>
+      <th>${t('report.col_increment')}</th>
+    </tr>`;
+
+    let html = '';
+    REPORT_ORDER.forEach(building => {
+      const houses = HOUSES.filter(h => h.building === building);
+      const rows   = houses.map(h => {
+        const bEntry   = balances[h.id] || {};
+        const isVacant = !balances[h.id] && !bEntry.futureOccupancy;
+        const tenant   = HOUSE_CACHE[h.id]?.TenantName || '';
+        // Building name omitted — already shown in the section header above
+        const label    = tenant ? `${h.displayNum} \u2013 ${tenant}` : `${h.displayNum}`;
+
+        if (isVacant) {
+          return `<tr class="report-row-vacant">
+            <td>${label} <span class="report-vacant-tag">${t('report.vacant')}</span></td>
+            <td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+        }
+
+        // Payments for this month — computed first as needed for rent breakdown
+        const paid        = (byHouse[h.id] || []).filter(p =>
+          parseInt(p.RentForMonth) === month && parseInt(p.RentForYear) === year);
+        const totalPaid   = paid.reduce((s, p) => s + parseFloat(p.AmountReceived || 0), 0);
+
+        const bal         = bEntry.balance || 0;
+        const thisRent    = bEntry.expectedRent || 0;
+        // prevBal = what was owed at the start of this month (before this month's rent was added)
+        const prevBal     = Math.max(0, bal + totalPaid - thisRent);
+        const rentCell    = thisRent
+          ? (prevBal > 0
+            ? `<td class="report-cell-rent-detail">
+                 <span class="report-rent-prev">${inr(prevBal)}</span>
+                 <span class="report-rent-add">+ ${inr(thisRent)}</span>
+                 <span class="report-rent-total">= ${inr(prevBal + thisRent)}</span>
+               </td>`
+            : `<td>${inr(thisRent)}</td>`)
+          : `<td class="report-cell-nil">—</td>`;
+
+        const balCell     = bal > 0
+          ? `<td class="report-cell-balance">${inr(bal)}</td>`
+          : `<td class="report-cell-nil">—</td>`;
+
+        const isPartial   = totalPaid > 0 && totalPaid < thisRent;
+        const paidClass   = isPartial ? 'report-cell-partial' : (totalPaid > 0 ? 'report-cell-paid' : 'report-cell-nil');
+        // Sort payments by date; show each on its own line
+        const sortedPaid  = [...paid].sort((a, b) => new Date(a.CollectedDate) - new Date(b.CollectedDate));
+        const paidCell    = sortedPaid.length
+          ? `<td class="${paidClass}">${sortedPaid.map(p =>
+              `${inr(p.AmountReceived)}<span class="report-paid-date"> ${_fmtDateOnly(p.CollectedDate)}</span>`
+            ).join('<br>')}</td>`
+          : `<td class="report-cell-nil">—</td>`;
+
+        const inc = (bEntry.upcomingIncrement && typeof bEntry.upcomingIncrement === 'object')
+          ? bEntry.upcomingIncrement : null;
+        const incCell = inc
+          ? `<td class="report-cell-increment">⬆️ ${inc.effectiveDate}</td>`
+          : (bEntry.nextIncrementDate
+            ? `<td class="report-cell-inc-future">${bEntry.nextIncrementDate}</td>`
+            : `<td class="report-cell-nil">—</td>`);
+
+        return `<tr>${[
+          `<td>${label}</td>`, rentCell, paidCell, balCell, incCell
+        ].join('')}</tr>`;
+      }).join('');
+
+      html += `
+        <div class="report-section">
+          <div class="report-building-title">${building.toUpperCase()}</div>
+          <div class="report-table-wrap">
+            <table class="report-table">
+              <thead>${hdr}</thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`;
+    });
+
+    contentEl.innerHTML = html;
+  } catch {
+    contentEl.innerHTML = `<p class="msg-error">${t('msg.net_check')}</p>`;
+  } finally {
+    hideLoader();
+  }
+}
+
+function _fmtDateOnly(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  return `${String(d.getDate()).padStart(2,'0')}-${_MONTHS_SHORT[d.getMonth()]}-${d.getFullYear()}`;
+}
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.dataset.page;
   if (page === 'collect')   initCollectPage();
   if (page === 'dashboard') initDashboardPage();
+  if (page === 'report')    initReportPage();
 });

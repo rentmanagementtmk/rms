@@ -5,6 +5,7 @@ const TRANSLATIONS = {
   en: {
     'header.dashboard':       'Dashboard',
     'header.collect':         'Rent',
+    'header.report':          'Summary',
     'header.lang_toggle':     'ಕನ್ನಡ',
 
     'collect.title':          'Rent Payment',
@@ -65,7 +66,13 @@ const TRANSLATIONS = {
     'tip.validate':           'Health check — validate masters data',
     'tip.refresh':            'Refresh dashboard',
 
-    'modal.dup_title':        '⚠️ Already Recorded',
+    'report.col_house':        'House',
+    'report.col_rent':         'Rent',
+    'report.col_paid':         'Paid',
+    'report.col_balance':      'Balance',
+    'report.col_increment':    'Next Increment',
+    'report.vacant':           'Vacant',
+    'msg.loading':             'Loading…',
     'modal.dup_body':         'A payment was already recorded for this house and month:',
     'modal.dup_body_multi':   'already recorded for this house and month:',
     'modal.dup_question':     'Save another entry anyway?',
@@ -97,8 +104,7 @@ const TRANSLATIONS = {
 
   kn: {
     'header.dashboard':       'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
-    'header.collect':         'ಬಾಡಿಗೆ',
-    'header.lang_toggle':     'English',
+    'header.collect':         'ಬಾಡಿಗೆ',    'header.report':          'ಸಾರಾಂಶ',    'header.lang_toggle':     'English',
 
     'collect.title':          'ಬಾಡಿಗೆ ಪಾವತಿ',
     'collect.subtitle':       'ಮನೆಯ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
@@ -158,7 +164,13 @@ const TRANSLATIONS = {
     'tip.validate':           'ಮಾಸ್ಟರ್ ಡೇಟಾ ಪರಿಶೀಲಿಸಿ',
     'tip.refresh':            'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ನವೀಕರಿಸಿ',
 
-    'modal.dup_title':        '⚠️ ಈಗಾಗಲೇ ದಾಖಲಾಗಿದೆ',
+    'report.col_house':        'ಮನೆ',
+    'report.col_rent':         'ಬಾಡಿಗೆ',
+    'report.col_paid':         'ಪಾವತಿ',
+    'report.col_balance':      'ಬಾಕಿ',
+    'report.col_increment':    'ಮುಂದಿನ ಏರಿಕೆ',
+    'report.vacant':           'ಖಾಲಿ',
+    'msg.loading':             'ಲೋಡ್ ಆಗುತ್ತಿದೆ…',
     'modal.dup_body':         'ಈ ಮನೆ ಮತ್ತು ತಿಂಗಳಿಗೆ ಪಾವತಿ ಈಗಾಗಲೇ ದಾಖಲಾಗಿದೆ:',
     'modal.dup_body_multi':   'ಈ ಮನೆ ಮತ್ತು ತಿಂಗಳಿಗೆ ಈಗಾಗಲೇ ದಾಖಲಾಗಿವೆ:',
     'modal.dup_question':     'ಇನ್ನೊಂದು ದಾಖಲೆ ಉಳಿಸಲಾ?',
