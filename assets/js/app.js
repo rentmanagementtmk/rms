@@ -240,6 +240,27 @@ function notifFailed(status) {
   return status !== 'SENT' && status !== true && status !== '' && status != null;
 }
 
+/** Balance status dot with tooltip. isVacant shows orange (no tenant, not pre-booked). */
+function balDot(balance, expectedRent, today, isVacant) {
+  if (isVacant)
+    return `<span class="bal-dot tip dot-orange" data-tip="${t('dot.vacant')}"></span>`;
+  if (balance === 0)
+    return `<span class="bal-dot tip dot-green" data-tip="${t('dot.paid')}"></span>`;
+  if (today.getDate() <= 10) return '';
+  if (expectedRent > 0 && balance > 2 * expectedRent)
+    return `<span class="bal-dot tip dot-red" data-tip="${t('dot.overdue')}"></span>`;
+  if (expectedRent > 0 && balance <= expectedRent)
+    return `<span class="bal-dot tip dot-yellow" data-tip="${t('dot.due')}"></span>`;
+  return '';
+}
+
+// Mobile tap: toggle tooltip visibility; click elsewhere dismisses
+document.addEventListener('click', e => {
+  const tip = e.target.closest('.tip');
+  document.querySelectorAll('.tip.show-tip').forEach(el => { if (el !== tip) el.classList.remove('show-tip'); });
+  if (tip) tip.classList.toggle('show-tip');
+});
+
 /** Loads from localStorage instantly, then silently refreshes from API in background */
 function loadHouseCache() {
   // Synchronous: populate from localStorage if fresh
@@ -559,15 +580,24 @@ async function initDashboardPage() {
 
         const payments = byHouse[h.id] || [];
 
+        const bEntry      = balances[h.id] || {};
+        const isFuture     = !!bEntry.futureOccupancy;
+        const isVacant     = !balances[h.id] && !isFuture; // no active balance entry = no tenant
+        const futureClass  = isFuture ? ' future-house' : '';
+        const today        = new Date();
+
         if (payments.length === 0) {
-          const bal     = balances[h.id]?.balance || 0;
-          const incIcon = balances[h.id]?.upcomingIncrement ? ' ⬆️' : '';
-          const balLine = bal > 0 ? `<span class="row-sub row-balance">Balance: ${inr(bal)}</span>` : '';
+          const bal     = bEntry.balance || 0;
+          const incIcon = bEntry.upcomingIncrement ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>` : '';
+          const dot     = isFuture ? '' : balDot(bal, bEntry.expectedRent || 0, today, isVacant);
+          const subLine = isFuture
+            ? `<span class="row-sub">${t('msg.prebooked')} ${bEntry.futureOccupancy}</span>`
+            : (bal > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(bal)}</span>` : '');
           rowsHtml += `
-            <div class="house-row unpaid">
+            <div class="house-row unpaid${futureClass}">
               <div class="row-info">
-                <span class="row-label">${houseLabel(h)}${incIcon}</span>
-                ${balLine}
+                <span class="row-label">${houseLabel(h)}${incIcon}${dot}</span>
+                ${subLine}
               </div>
               <span class="row-amount no-pay">—</span>
             </div>`;
@@ -581,8 +611,9 @@ async function initDashboardPage() {
             const monthLabel  = `${t('month.' + payments[0].RentForMonth)} ${payments[0].RentForYear}`;
             const tenant      = HOUSE_CACHE[h.id]?.TenantName || '';
             const rowLabel    = tenant ? `${h.building} ${h.displayNum} - ${tenant}` : `${h.building} ${h.displayNum}`;
-            const bell        = payments.some(p => notifFailed(p.NotificationSent)) ? ' 🔕' : '';
-            const incIcon     = balances[h.id]?.upcomingIncrement ? ' ⬆️' : '';
+            const bell        = payments.some(p => notifFailed(p.NotificationSent)) ? ` <span class="tip" data-tip="${t('tip.notif_failed')}">🔕</span>` : '';
+            const incIcon     = bEntry.upcomingIncrement ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>` : '';
+            const dot         = balDot(0, bEntry.expectedRent || 0, today, false); // paid row
             const splitLines  = payments.map(p =>
               `<div class="dup-split">
                 <span class="split-amount">${inr(p.AmountReceived)}</span>
@@ -590,9 +621,9 @@ async function initDashboardPage() {
               </div>`
             ).join('');
             rowsHtml += `
-              <div class="house-row paid dup-entry">
+              <div class="house-row paid dup-entry${futureClass}">
                 <div class="row-info">
-                  <span class="row-label">${rowLabel} ⚠️${bell}${incIcon}</span>
+                  <span class="row-label">${rowLabel} <span class="tip" data-tip="${t('tip.duplicate')}">⚠️</span>${bell}${incIcon}${dot}</span>
                   <span class="row-sub">${monthLabel} · ${payments.length} ${t('msg.payments')}</span>
                   <div class="dup-splits">${splitLines}</div>
                 </div>
@@ -604,12 +635,13 @@ async function initDashboardPage() {
               grandTotal    += p.AmountReceived;
               const tenant2   = HOUSE_CACHE[h.id]?.TenantName || '';
               const rowLabel2 = tenant2 ? `${h.building} ${h.displayNum} - ${tenant2}` : `${h.building} ${h.displayNum}`;
-              const bell2     = notifFailed(p.NotificationSent) ? ' 🔕' : '';
-              const incIcon2  = balances[h.id]?.upcomingIncrement ? ' ⬆️' : '';
+              const bell2     = notifFailed(p.NotificationSent) ? ` <span class="tip" data-tip="${t('tip.notif_failed')}">🔕</span>` : '';
+              const incIcon2  = bEntry.upcomingIncrement ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>` : '';
+              const dot2      = balDot(0, bEntry.expectedRent || 0, today, false);
               rowsHtml += `
-              <div class="house-row paid">
+              <div class="house-row paid${futureClass}">
                 <div class="row-info">
-                  <span class="row-label">${rowLabel2}${bell2}${incIcon2}</span>
+                  <span class="row-label">${rowLabel2}${bell2}${incIcon2}${dot2}</span>
                   <span class="row-sub">${t('month.' + p.RentForMonth)} ${p.RentForYear}</span>
                   <span class="row-date">${formatDate(p.CollectedDate)}</span>
                 </div>

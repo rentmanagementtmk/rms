@@ -411,8 +411,41 @@ input:focus, select:focus { border-color: var(--blue); }
   border-bottom: 1px solid var(--border);
 }
 
-.house-row:last-child { border-bottom: none; }
-.house-row.unpaid     { opacity: 0.5; }
+.house-row:last-child        { border-bottom: none; }
+.house-row.unpaid            { background: rgba(251,191,36,0.08); }
+.house-row.future-house      { background: rgba(99,102,241,0.07); }
+.house-row.future-house .row-label { font-style: italic; }
+
+/* Balance status dots */
+.bal-dot    { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; margin-left: 0.3rem; vertical-align: middle; flex-shrink: 0; }
+.dot-green  { background: #22c55e; }
+.dot-yellow { background: #f59e0b; }
+.dot-red    { background: #ef4444; }
+.dot-orange { background: #f97316; }
+
+/* Tooltip: desktop hover + mobile tap via .show-tip */
+.tip { position: relative; display: inline-block; cursor: help; }
+.tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30,30,30,0.88);
+  color: #fff;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  font-weight: 400;
+  font-style: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 200;
+}
+.tip:hover::after,
+.tip.show-tip::after { opacity: 1; }
 
 .row-info            { display: flex; flex-direction: column; gap: 0.1rem; }
 .row-label           { font-size: 0.9375rem; font-weight: 500; }
