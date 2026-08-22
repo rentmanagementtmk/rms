@@ -541,7 +541,7 @@ async function initDashboardPage() {
 
   filterMonth.value = prevMonth().month;
 
-  async function load() {
+  async function load(forceRefresh = false) {
     loadingEl.classList.remove('hidden');
     resultsEl.innerHTML = '';
 
@@ -549,13 +549,17 @@ async function initDashboardPage() {
     if (filterMonth.value) params.month = filterMonth.value;
     // BLDG: prefix = building-level filter, handled client-side; don't send houseId to server
     if (filterHouse.value && !filterHouse.value.startsWith('BLDG:')) params.houseId = filterHouse.value;
+    if (forceRefresh) params.forceRefresh = '1';
+
+    const balParams = { action: 'getBalanceSummary', year: filterYear.value, month: filterMonth.value || new Date().getMonth() + 1 };
+    if (forceRefresh) balParams.forceRefresh = '1';
 
     // Fetch balance summary alongside dashboard data (parallel)
     let balances = {};
     try {
       const [dashRes, balRes] = await Promise.all([
         apiGet(params),
-        apiGet({ action: 'getBalanceSummary', year: filterYear.value, month: filterMonth.value || new Date().getMonth() + 1 }),
+        apiGet(balParams),
       ]);
       if (dashRes.error) { resultsEl.innerHTML = `<p class="msg-error">${dashRes.error}</p>`; return; }
       if (balRes.balances) balances = balRes.balances;
@@ -743,7 +747,7 @@ async function initDashboardPage() {
       filterHouse.value = '';
       refreshBtn.disabled    = true;
       refreshBtn.textContent = '⏳';
-      load().finally(() => {
+      load(true).finally(() => {
         refreshBtn.disabled    = false;
         refreshBtn.textContent = '🔄';
       });
