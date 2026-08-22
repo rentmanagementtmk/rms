@@ -253,9 +253,9 @@ function balDot(balance, expectedRent, today, isVacant) {
   if (balance === 0)
     return `<span class="bal-dot tip dot-green" data-tip="${t('dot.paid')}"></span>`;
   if (today.getDate() <= 10) return '';
-  if (expectedRent > 0 && balance > 2 * expectedRent)
+  if (expectedRent > 0 && balance >= 2 * expectedRent)
     return `<span class="bal-dot tip dot-red" data-tip="${t('dot.overdue')}"></span>`;
-  if (expectedRent > 0 && balance <= expectedRent)
+  if (expectedRent > 0 && balance < 2 * expectedRent)
     return `<span class="bal-dot tip dot-yellow" data-tip="${t('dot.due')}"></span>`;
   return '';
 }

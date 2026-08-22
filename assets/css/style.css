@@ -330,6 +330,8 @@ input:focus, select:focus { border-color: var(--blue); }
   min-width: 480px;
 }
 
+.report-table th:first-child,
+.report-table td:first-child { width: 1.5rem; text-align: center; }
 .report-table thead tr { background: var(--blue); }
 .report-table th {
   color: #fff;
