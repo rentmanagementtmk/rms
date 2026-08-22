@@ -229,6 +229,7 @@ function houseLabel(h) {
 // houseId → full house row from Masters_Houses (loaded once on page init)
 let HOUSE_CACHE = {};
 let _dashboardRecords = null; // last rendered records, used for silent re-render after cache refresh
+let _dashboardBalances = null; // last rendered balances, kept in sync with _dashboardRecords
 
 const LS_HOUSE_KEY = 'rms_houses';
 const LS_TTL_MS    = 60 * 60 * 1000; // 1 hour
@@ -319,7 +320,7 @@ function _refreshHouseSelects() {
     const resultsEl = document.getElementById('results');
     if (resultsEl && resultsEl.children.length > 0) {
       const renderFn = resultsEl._render;
-      if (typeof renderFn === 'function') renderFn(_dashboardRecords);
+      if (typeof renderFn === 'function') renderFn(_dashboardRecords, _dashboardBalances);
     }
   }
 }
@@ -554,8 +555,9 @@ async function initDashboardPage() {
 
   function render(records, balances) {
     balances = balances || {};
-    _dashboardRecords = records;
-    resultsEl._render = render;
+    _dashboardRecords  = records;
+    _dashboardBalances = balances;
+    resultsEl._render  = render;
     // Build a lookup: houseId → [payment, ...]
     const byHouse = {};
     records.forEach(r => (byHouse[r.HouseID] = byHouse[r.HouseID] || []).push(r));
