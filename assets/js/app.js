@@ -827,9 +827,8 @@ async function initReportPage() {
       const rows   = houses.map(h => {
         const bEntry   = balances[h.id] || {};
         const isVacant = !balances[h.id] && !bEntry.futureOccupancy;
-        const tenant   = HOUSE_CACHE[h.id]?.TenantName || '';
-        // Building name omitted — already shown in the section header above
-        const label    = tenant ? `${h.displayNum} \u2013 ${tenant}` : `${h.displayNum}`;
+        // Building name and tenant name omitted — building shown in section header, number sufficient
+        const label    = `${h.displayNum}`;
 
         if (isVacant) {
           return `<tr class="report-row-vacant">
