@@ -39,10 +39,11 @@ const HOUSES = [
 ];
 
 // ─── API ──────────────────────────────────────────────────────────────────────
-async function apiGet(params) {
+async function apiGet(params, { forceRefresh = false } = {}) {
   const url = new URL(CONFIG.API_URL);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const resp = await fetch(url.toString());
+  if (forceRefresh) url.searchParams.set('_t', Date.now()); // bust browser HTTP cache
+  const resp = await fetch(url.toString(), forceRefresh ? { cache: 'reload' } : {});
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
@@ -558,8 +559,8 @@ async function initDashboardPage() {
     let balances = {};
     try {
       const [dashRes, balRes] = await Promise.all([
-        apiGet(params),
-        apiGet(balParams),
+        apiGet(params, { forceRefresh }),
+        apiGet(balParams, { forceRefresh }),
       ]);
       if (dashRes.error) { resultsEl.innerHTML = `<p class="msg-error">${dashRes.error}</p>`; return; }
       if (balRes.balances) balances = balRes.balances;
