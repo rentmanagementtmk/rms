@@ -584,6 +584,7 @@ async function initDashboardPage() {
         const isFuture     = !!bEntry.futureOccupancy;
         const isVacant     = !balances[h.id] && !isFuture; // no active balance entry = no tenant
         const futureClass  = isFuture ? ' future-house' : '';
+        const vacantClass  = isVacant ? ' vacant' : '';
         const today        = new Date();
 
         if (payments.length === 0) {
@@ -594,7 +595,7 @@ async function initDashboardPage() {
             ? `<span class="row-sub">${t('msg.prebooked')} ${bEntry.futureOccupancy}</span>`
             : (bal > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(bal)}</span>` : '');
           rowsHtml += `
-            <div class="house-row unpaid${futureClass}">
+            <div class="house-row unpaid${futureClass}${vacantClass}">
               <div class="row-info">
                 <span class="row-label">${houseLabel(h)}${incIcon}${dot}</span>
                 ${subLine}

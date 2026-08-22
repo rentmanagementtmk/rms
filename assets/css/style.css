@@ -413,6 +413,7 @@ input:focus, select:focus { border-color: var(--blue); }
 
 .house-row:last-child        { border-bottom: none; }
 .house-row.unpaid            { background: rgba(251,191,36,0.08); }
+.house-row.vacant            { opacity: 0.45; background: none; }
 .house-row.future-house      { background: rgba(99,102,241,0.07); }
 .house-row.future-house .row-label { font-style: italic; }
 
