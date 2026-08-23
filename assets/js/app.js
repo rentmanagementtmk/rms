@@ -873,7 +873,7 @@ async function initReportPage() {
         const sortedPaid  = [...paid].sort((a, b) => new Date(a.CollectedDate) - new Date(b.CollectedDate));
         const paidCell    = sortedPaid.length
           ? `<td class="${paidClass}">${sortedPaid.map(p =>
-              `${inr(p.AmountReceived)}<span class="report-paid-date"> ${_fmtDateOnly(p.CollectedDate)}</span>`
+              `${inr(p.AmountReceived)}<br><span class="report-paid-date">${_fmtDateOnly(p.CollectedDate)}</span>`
             ).join('<br>')}</td>`
           : `<td class="report-cell-nil">—</td>`;
 

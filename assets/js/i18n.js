@@ -7,6 +7,9 @@ const TRANSLATIONS = {
     'header.collect':         'Rent',
     'header.report':          'Summary',
     'header.lang_toggle':     'ಕನ್ನಡ',
+    'nav.collect':            'Collect',
+    'nav.dashboard':          'Dashboard',
+    'nav.summary':            'Summary',
 
     'collect.title':          'Rent Payment',
     'collect.subtitle':       'Scan the house QR code to begin',
@@ -104,8 +107,9 @@ const TRANSLATIONS = {
 
   kn: {
     'header.dashboard':       'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
-    'header.collect':         'ಬಾಡಿಗೆ',    'header.report':          'ಸಾರಾಂಶ',    'header.lang_toggle':     'English',
-
+    'header.collect':         'ಬಾಡಿಗೆ',    'header.report':          'ಸಾರಾಂಶ',    'header.lang_toggle':     'English',    'nav.collect':            'ಬಾಡಿಗೆ',
+    'nav.dashboard':          'ಫಲಕ',
+    'nav.summary':            'ಸಾರಾಂಶ',
     'collect.title':          'ಬಾಡಿಗೆ ಪಾವತಿ',
     'collect.subtitle':       'ಮನೆಯ QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
     'collect.scan_btn':       'QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',

@@ -100,9 +100,44 @@ body {
 /* ─── LAYOUT ────────────────────────────────────────────────────────────── */
 main {
   padding: 1rem;
+  padding-bottom: calc(1rem + 4rem + env(safe-area-inset-bottom, 0px));
   max-width: 480px;
   margin: 0 auto;
 }
+
+/* ─── BOTTOM NAV ──────────────────────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: calc(4rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: #fff;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  z-index: 100;
+  box-shadow: 0 -1px 6px rgba(0,0,0,.07);
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
+}
+.nav-item.nav-active { color: var(--blue); }
+.nav-item:active     { opacity: 0.7; }
+.nav-icon            { font-size: 1.25rem; line-height: 1; }
+.nav-label           { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.625rem; }
+.nav-label           { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .card {
   background: var(--card);
