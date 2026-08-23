@@ -408,6 +408,17 @@ async function initCollectPage() {
     if (previewDue) previewDue.textContent = inr(base.currentBalance || 0);
     updatePostPayment();
     if (previewWrap) previewWrap.classList.remove('hidden');
+    // update banner rent line once preview data is available
+    const rentEl = houseInfoEl?.querySelector('.house-rent');
+    const rentStr = inr(base.expectedRent || 0);
+    if (rentEl) {
+      rentEl.textContent = `${t('collect.preview_rent')} ${rentStr}`;
+    } else if (houseInfoEl && rentStr) {
+      const p = document.createElement('p');
+      p.className = 'house-rent';
+      p.textContent = `${t('collect.preview_rent')} ${rentStr}`;
+      houseInfoEl.appendChild(p);
+    }
   }
 
   function updatePostPayment() {
@@ -474,6 +485,8 @@ async function initCollectPage() {
     setPaymentMode('ONLINE');
     renderPreview(preview);
     amountEl.focus();
+    // fetch preview after form is visible — sequential to avoid Apps Script concurrency limit
+    refreshPreview();
   }
 
   function resetToScan() {
@@ -507,17 +520,11 @@ async function initCollectPage() {
         await stopScanner();
         showLoader();
         try {
-          const { month, year } = prevMonth();
-          const previewYear  = parseInt(yearSel.value,  10) || year;
-          const previewMonth = parseInt(monthSel.value, 10) || month;
-          const [houseRes, previewRes] = await Promise.all([
-            apiGet({ action: 'getHouse', qr: qrValue }),
-            apiGet({ action: 'getCollectionPreview', houseId: qrValue, year: previewYear, month: previewMonth }).catch(() => null),
-          ]);
+          const houseRes = await apiGet({ action: 'getHouse', qr: qrValue });
           hideLoader();
           if (houseRes.error === 'VACANT') return showToast(t('msg.house_vacant'), 'warning');
           if (houseRes.error) return showToast(t('msg.house_not_found'), 'error');
-          showForm(houseRes.house, previewRes);
+          showForm(houseRes.house);
         } catch {
           hideLoader();
           showToast(t('msg.network_error'), 'error');
@@ -543,17 +550,11 @@ async function initCollectPage() {
     useManualBtn.disabled = true;
     showLoader();
     try {
-      const { month, year } = prevMonth();
-      const previewYear  = parseInt(yearSel.value,  10) || year;
-      const previewMonth = parseInt(monthSel.value, 10) || month;
-      const [houseRes, previewRes] = await Promise.all([
-        apiGet({ action: 'getHouse', qr: houseId }),
-        apiGet({ action: 'getCollectionPreview', houseId, year: previewYear, month: previewMonth }).catch(() => null),
-      ]);
+      const houseRes = await apiGet({ action: 'getHouse', qr: houseId });
       if (houseRes.error === 'VACANT') { showToast(t('msg.house_vacant'), 'warning'); return; }
       if (houseRes.error) { showToast(t('msg.house_not_found'), 'error'); return; }
       manualSection.classList.add('hidden');
-      showForm(houseRes.house, previewRes);
+      showForm(houseRes.house);
     } catch {
       showToast(t('msg.network_error'), 'error');
     } finally {
