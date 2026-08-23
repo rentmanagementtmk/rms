@@ -584,6 +584,7 @@ input:focus, select:focus { border-color: var(--blue); }
 .row-date            { font-size: 0.6875rem; color: var(--light); }
 .row-balance         { font-size: 0.75rem; color: var(--red); font-weight: 600; }
 .row-increment       { font-size: 0.75rem; color: var(--amber); font-weight: 500; }
+.row-increment-notified { font-size: 0.75rem; color: var(--blue);  font-weight: 500; }
 .row-amount          { font-size: 1rem; font-weight: 700; color: var(--green); white-space: nowrap; }
 .row-amount.no-pay   { color: var(--muted); font-weight: 400; font-size: 0.9375rem; }
 

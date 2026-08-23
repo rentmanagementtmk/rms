@@ -611,9 +611,16 @@ async function initDashboardPage() {
         // Guard against stale boolean (pre-redeploy) — only use if object with expected fields
         const inc     = (bEntry.upcomingIncrement && typeof bEntry.upcomingIncrement === 'object')
           ? bEntry.upcomingIncrement : null;
-        const incLine      = inc
+        const notif   = (!inc && bEntry.recentIncrement && typeof bEntry.recentIncrement === 'object')
+          ? bEntry.recentIncrement : null;
+        const incIcon0 = inc
+          ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>`
+          : (notif ? ` <span class="tip" data-tip="${t('tip.increment_notified')}">📩</span>` : '');
+        const incLine  = inc
           ? `<span class="row-sub row-increment">${t('msg.increment_detail').replace('{rent}', inr(inc.newRent)).replace('{date}', inc.effectiveDate).replace('{inc}', inr(inc.increment))}</span>`
-          : '';
+          : (notif
+            ? `<span class="row-sub row-increment-notified">${t('msg.increment_notified').replace('{rent}', inr(notif.newRent)).replace('{date}', notif.effectiveDate)}</span>`
+            : '');
 
         if (payments.length === 0) {
           const bal     = bEntry.balance || 0;
@@ -642,7 +649,7 @@ async function initDashboardPage() {
             const tenant      = HOUSE_CACHE[h.id]?.TenantName || '';
             const rowLabel    = tenant ? `${h.building} ${h.displayNum} - ${tenant}` : `${h.building} ${h.displayNum}`;
             const bell        = payments.some(p => notifFailed(p.NotificationSent)) ? ` <span class="tip" data-tip="${t('tip.notif_failed')}">🔕</span>` : '';
-            const incIcon     = bEntry.upcomingIncrement ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>` : '';
+            const incIcon     = incIcon0;
             const histBal     = bEntry.balance || 0;
             const dot         = balDot(histBal, bEntry.expectedRent || 0, today, false);
             const balLine     = histBal > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(histBal)}</span>` : '';
@@ -670,7 +677,7 @@ async function initDashboardPage() {
               const tenant2   = HOUSE_CACHE[h.id]?.TenantName || '';
               const rowLabel2 = tenant2 ? `${h.building} ${h.displayNum} - ${tenant2}` : `${h.building} ${h.displayNum}`;
               const bell2     = notifFailed(p.NotificationSent) ? ` <span class="tip" data-tip="${t('tip.notif_failed')}">🔕</span>` : '';
-              const incIcon2  = bEntry.upcomingIncrement ? ` <span class="tip" data-tip="${t('tip.increment')}">⬆️</span>` : '';
+              const incIcon2  = incIcon0;
               const histBal2  = bEntry.balance || 0;
               const dot2      = balDot(histBal2, bEntry.expectedRent || 0, today, false);
               const balLine2  = histBal2 > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(histBal2)}</span>` : '';
