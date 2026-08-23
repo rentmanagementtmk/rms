@@ -62,7 +62,7 @@
       <div id="manual-section" class="card hidden">
         <h3 class="section-title" data-i18n="collect.select_house">Select House</h3>
         <div class="field">
-          <label for="manual-house-select">House</label>
+          <label for="manual-house-select" data-i18n="collect.house_label">House</label>
           <select id="manual-house-select">
             <option value="" data-i18n="collect.house_ph">— select a house —</option>
           </select>
@@ -88,6 +88,35 @@
           <div class="field">
             <label for="rent-year" data-i18n="collect.year_label">Year</label>
             <select id="rent-year"></select>
+          </div>
+        </div>
+        <div class="field">
+          <label data-i18n="collect.payment_mode_label">Payment Mode</label>
+          <div id="payment-mode-toggle" class="mode-toggle" role="radiogroup" aria-label="Payment Mode">
+            <button type="button" class="mode-option active" data-mode="ONLINE" data-i18n="collect.payment_mode_online" role="radio" aria-checked="true">Online</button>
+            <button type="button" class="mode-option" data-mode="CASH" data-i18n="collect.payment_mode_cash" role="radio" aria-checked="false">Cash</button>
+          </div>
+          <input type="hidden" id="payment-mode" value="ONLINE">
+        </div>
+        <div id="collect-preview" class="collect-preview hidden" aria-live="polite">
+          <p class="collect-preview-title" data-i18n="collect.preview_title">Payment Preview</p>
+          <div class="collect-preview-grid">
+            <div class="collect-preview-item">
+              <span data-i18n="collect.preview_expected">Expected Rent</span>
+              <strong id="preview-expected">—</strong>
+            </div>
+            <div class="collect-preview-item">
+              <span data-i18n="collect.preview_arrears">Arrears</span>
+              <strong id="preview-arrears">—</strong>
+            </div>
+            <div class="collect-preview-item">
+              <span data-i18n="collect.preview_due">Current Due</span>
+              <strong id="preview-due">—</strong>
+            </div>
+            <div class="collect-preview-item">
+              <span data-i18n="collect.preview_post">Post-Payment Balance</span>
+              <strong id="preview-post">—</strong>
+            </div>
           </div>
         </div>
         <div class="btn-group">

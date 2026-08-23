@@ -371,9 +371,81 @@ async function initCollectPage() {
   const rentForm     = document.getElementById('rent-form');
   const houseInfoEl  = document.getElementById('house-info');
   const saveBtn      = document.getElementById('save-btn');
+  const amountEl     = document.getElementById('amount');
+  const paymentModeEl = document.getElementById('payment-mode');
+  const paymentModeToggleEl = document.getElementById('payment-mode-toggle');
+
+  const previewWrap     = document.getElementById('collect-preview');
+  const previewExpected = document.getElementById('preview-expected');
+  const previewArrears  = document.getElementById('preview-arrears');
+  const previewDue      = document.getElementById('preview-due');
+  const previewPost     = document.getElementById('preview-post');
 
   let currentHouse = null;
   let scanner      = null;
+  let _previewBase = null;
+  let _previewTimer = null;
+
+  function setPaymentMode(mode) {
+    const normalized = String(mode || 'ONLINE').toUpperCase() === 'CASH' ? 'CASH' : 'ONLINE';
+    paymentModeEl.value = normalized;
+    if (!paymentModeToggleEl) return;
+    paymentModeToggleEl.querySelectorAll('.mode-option').forEach(btn => {
+      const isActive = btn.dataset.mode === normalized;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    });
+  }
+
+  setPaymentMode('ONLINE');
+
+  function renderPreview(base) {
+    if (!base) {
+      previewWrap.classList.add('hidden');
+      return;
+    }
+    _previewBase = base;
+    previewExpected.textContent = inr(base.expectedRent || 0);
+    previewArrears.textContent  = inr(base.arrears || 0);
+    previewDue.textContent      = inr(base.currentBalance || 0);
+    updatePostPayment();
+    previewWrap.classList.remove('hidden');
+  }
+
+  function updatePostPayment() {
+    if (!_previewBase) return;
+    const amt = parseFloat(amountEl.value);
+    const paid = isNaN(amt) || amt < 0 ? 0 : amt;
+    const post = Math.max(0, (_previewBase.currentBalance || 0) - paid);
+    previewPost.textContent = inr(post);
+  }
+
+  async function refreshPreview() {
+    if (!currentHouse) return;
+    const year = parseInt(yearSel.value, 10);
+    const month = parseInt(monthSel.value, 10);
+    if (!year || !month) return;
+    try {
+      const res = await apiGet({
+        action: 'getCollectionPreview',
+        houseId: currentHouse.HouseID,
+        year,
+        month,
+      });
+      if (res.error) {
+        renderPreview(null);
+        return;
+      }
+      renderPreview(res);
+    } catch {
+      renderPreview(null);
+    }
+  }
+
+  function schedulePreviewRefresh() {
+    clearTimeout(_previewTimer);
+    _previewTimer = setTimeout(refreshPreview, 220);
+  }
 
   async function stopScanner() {
     if (scanner) {
@@ -397,14 +469,24 @@ async function initCollectPage() {
     `;
     scanSection.classList.add('hidden');
     formSection.classList.remove('hidden');
-    document.getElementById('amount').value = '';
-    document.getElementById('amount').focus();
+    amountEl.value = '';
+    setPaymentMode('ONLINE');
+    _previewBase = null;
+    previewExpected.textContent = '—';
+    previewArrears.textContent  = '—';
+    previewDue.textContent      = '—';
+    previewPost.textContent     = '—';
+    previewWrap.classList.add('hidden');
+    amountEl.focus();
+    refreshPreview();
   }
 
   function resetToScan() {
     currentHouse = null;
     formSection.classList.add('hidden');
     scanSection.classList.remove('hidden');
+    _previewBase = null;
+    previewWrap.classList.add('hidden');
     const p = prevMonth();
     monthSel.value = p.month;
     yearSel.value  = p.year;
@@ -472,6 +554,16 @@ async function initCollectPage() {
   });
 
   rescanBtn.addEventListener('click', resetToScan);
+  amountEl.addEventListener('input', updatePostPayment);
+  monthSel.addEventListener('change', schedulePreviewRefresh);
+  yearSel.addEventListener('change', schedulePreviewRefresh);
+  if (paymentModeToggleEl) {
+    paymentModeToggleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.mode-option');
+      if (!btn) return;
+      setPaymentMode(btn.dataset.mode);
+    });
+  }
 
   rentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -480,6 +572,7 @@ async function initCollectPage() {
     const amount    = parseFloat(document.getElementById('amount').value);
     const rentMonth = parseInt(monthSel.value);
     const rentYear  = parseInt(yearSel.value);
+    const paymentMode = (paymentModeEl.value || 'ONLINE').toUpperCase();
 
     if (isNaN(amount) || amount <= 0) return showToast(t('msg.invalid_amount'), 'error');
 
@@ -504,6 +597,7 @@ async function initCollectPage() {
         rentForYear: rentYear,
         rentForMonth: rentMonth,
         amount,
+        paymentMode,
       });
 
       if (res.error) {
