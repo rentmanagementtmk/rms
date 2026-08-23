@@ -410,15 +410,7 @@ async function initCollectPage() {
     if (previewWrap) previewWrap.classList.remove('hidden');
     // update banner rent line once preview data is available
     const rentEl = houseInfoEl?.querySelector('.house-rent');
-    const rentStr = inr(base.expectedRent || 0);
-    if (rentEl) {
-      rentEl.textContent = `${t('collect.preview_rent')} ${rentStr}`;
-    } else if (houseInfoEl && rentStr) {
-      const p = document.createElement('p');
-      p.className = 'house-rent';
-      p.textContent = `${t('collect.preview_rent')} ${rentStr}`;
-      houseInfoEl.appendChild(p);
-    }
+    if (rentEl) rentEl.textContent = `${t('collect.preview_rent')} ${inr(base.expectedRent || 0)}`;
   }
 
   function updatePostPayment() {
@@ -465,28 +457,24 @@ async function initCollectPage() {
     scanBtn.classList.remove('hidden');
   }
 
-  // previewData is pre-fetched in parallel with getHouse to avoid a sequential round-trip
-  function showForm(house, previewData) {
+  // preview is included in the same response as house to avoid a second round-trip
+  function showForm(house, preview) {
     currentHouse = house;
     const entry       = HOUSES.find(x => x.id === house.HouseID);
     const baseName    = entry ? `${entry.building} ${entry.displayNum}` : house.HouseLabel;
     const tenantName  = house.TenantName || '';
     const displayLine = tenantName ? `${baseName} - ${tenantName}` : baseName;
-    const preview     = previewData?.success ? previewData : null;
-    const rentStr     = preview ? inr(preview.expectedRent || 0) : '';
     houseInfoEl.innerHTML = `
       <p class="house-building">${house.BuildingName}</p>
       <p class="house-name">${displayLine}</p>
-      ${rentStr ? `<p class="house-rent">${t('collect.preview_rent')} ${rentStr}</p>` : ''}
+      <p class="house-rent"></p>
     `;
     scanSection.classList.add('hidden');
     formSection.classList.remove('hidden');
     amountEl.value = '';
     setPaymentMode('ONLINE');
-    renderPreview(preview);
+    renderPreview(preview?.success !== false ? preview : null);
     amountEl.focus();
-    // fetch preview after form is visible — sequential to avoid Apps Script concurrency limit
-    refreshPreview();
   }
 
   function resetToScan() {
@@ -520,11 +508,14 @@ async function initCollectPage() {
         await stopScanner();
         showLoader();
         try {
-          const houseRes = await apiGet({ action: 'getHouse', qr: qrValue });
+          const { month, year } = prevMonth();
+          const res = await apiGet({ action: 'getHouseWithPreview', qr: qrValue,
+            year: parseInt(yearSel.value, 10) || year,
+            month: parseInt(monthSel.value, 10) || month });
           hideLoader();
-          if (houseRes.error === 'VACANT') return showToast(t('msg.house_vacant'), 'warning');
-          if (houseRes.error) return showToast(t('msg.house_not_found'), 'error');
-          showForm(houseRes.house);
+          if (res.error === 'VACANT') return showToast(t('msg.house_vacant'), 'warning');
+          if (res.error) return showToast(t('msg.house_not_found'), 'error');
+          showForm(res.house, res.preview);
         } catch {
           hideLoader();
           showToast(t('msg.network_error'), 'error');
@@ -550,11 +541,14 @@ async function initCollectPage() {
     useManualBtn.disabled = true;
     showLoader();
     try {
-      const houseRes = await apiGet({ action: 'getHouse', qr: houseId });
-      if (houseRes.error === 'VACANT') { showToast(t('msg.house_vacant'), 'warning'); return; }
-      if (houseRes.error) { showToast(t('msg.house_not_found'), 'error'); return; }
+      const { month, year } = prevMonth();
+      const res = await apiGet({ action: 'getHouseWithPreview', qr: houseId,
+        year: parseInt(yearSel.value, 10) || year,
+        month: parseInt(monthSel.value, 10) || month });
+      if (res.error === 'VACANT') { showToast(t('msg.house_vacant'), 'warning'); return; }
+      if (res.error) { showToast(t('msg.house_not_found'), 'error'); return; }
       manualSection.classList.add('hidden');
-      showForm(houseRes.house);
+      showForm(res.house, res.preview);
     } catch {
       showToast(t('msg.network_error'), 'error');
     } finally {
