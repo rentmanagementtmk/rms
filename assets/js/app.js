@@ -375,9 +375,7 @@ async function initCollectPage() {
   const paymentModeEl = document.getElementById('payment-mode');
   const paymentModeToggleEl = document.getElementById('payment-mode-toggle');
 
-  const previewWrap     = document.getElementById('collect-preview');
-  const previewExpected = document.getElementById('preview-expected');
-  const previewArrears  = document.getElementById('preview-arrears');
+  const previewWrap     = document.getElementById('collect-preview'); // may be null after markup change
   const previewDue      = document.getElementById('preview-due');
   const previewPost     = document.getElementById('preview-post');
 
@@ -400,16 +398,16 @@ async function initCollectPage() {
   setPaymentMode('ONLINE');
 
   function renderPreview(base) {
+    _previewBase = base || null;
     if (!base) {
-      previewWrap.classList.add('hidden');
+      if (previewDue)  previewDue.textContent  = '—';
+      if (previewPost) previewPost.textContent = '—';
+      if (previewWrap) previewWrap.classList.add('hidden');
       return;
     }
-    _previewBase = base;
-    previewExpected.textContent = inr(base.expectedRent || 0);
-    previewArrears.textContent  = inr(base.arrears || 0);
-    previewDue.textContent      = inr(base.currentBalance || 0);
+    if (previewDue) previewDue.textContent = inr(base.currentBalance || 0);
     updatePostPayment();
-    previewWrap.classList.remove('hidden');
+    if (previewWrap) previewWrap.classList.remove('hidden');
   }
 
   function updatePostPayment() {
@@ -456,29 +454,26 @@ async function initCollectPage() {
     scanBtn.classList.remove('hidden');
   }
 
-  function showForm(house) {
+  // previewData is pre-fetched in parallel with getHouse to avoid a sequential round-trip
+  function showForm(house, previewData) {
     currentHouse = house;
     const entry       = HOUSES.find(x => x.id === house.HouseID);
     const baseName    = entry ? `${entry.building} ${entry.displayNum}` : house.HouseLabel;
     const tenantName  = house.TenantName || '';
     const displayLine = tenantName ? `${baseName} - ${tenantName}` : baseName;
+    const preview     = previewData?.success ? previewData : null;
+    const rentStr     = preview ? inr(preview.expectedRent || 0) : '';
     houseInfoEl.innerHTML = `
       <p class="house-building">${house.BuildingName}</p>
       <p class="house-name">${displayLine}</p>
-      <p class="house-id">${house.HouseID}</p>
+      ${rentStr ? `<p class="house-rent">${t('collect.preview_rent')} ${rentStr}</p>` : ''}
     `;
     scanSection.classList.add('hidden');
     formSection.classList.remove('hidden');
     amountEl.value = '';
     setPaymentMode('ONLINE');
-    _previewBase = null;
-    previewExpected.textContent = '—';
-    previewArrears.textContent  = '—';
-    previewDue.textContent      = '—';
-    previewPost.textContent     = '—';
-    previewWrap.classList.add('hidden');
+    renderPreview(preview);
     amountEl.focus();
-    refreshPreview();
   }
 
   function resetToScan() {
@@ -486,7 +481,9 @@ async function initCollectPage() {
     formSection.classList.add('hidden');
     scanSection.classList.remove('hidden');
     _previewBase = null;
-    previewWrap.classList.add('hidden');
+    if (previewDue)  previewDue.textContent  = '—';
+    if (previewPost) previewPost.textContent = '—';
+    if (previewWrap) previewWrap.classList.add('hidden');
     const p = prevMonth();
     monthSel.value = p.month;
     yearSel.value  = p.year;
@@ -510,11 +507,17 @@ async function initCollectPage() {
         await stopScanner();
         showLoader();
         try {
-          const res = await apiGet({ action: 'getHouse', qr: qrValue });
+          const { month, year } = prevMonth();
+          const previewYear  = parseInt(yearSel.value,  10) || year;
+          const previewMonth = parseInt(monthSel.value, 10) || month;
+          const [houseRes, previewRes] = await Promise.all([
+            apiGet({ action: 'getHouse', qr: qrValue }),
+            apiGet({ action: 'getCollectionPreview', houseId: qrValue, year: previewYear, month: previewMonth }).catch(() => null),
+          ]);
           hideLoader();
-          if (res.error === 'VACANT') return showToast(t('msg.house_vacant'), 'warning');
-          if (res.error) return showToast(t('msg.house_not_found'), 'error');
-          showForm(res.house);
+          if (houseRes.error === 'VACANT') return showToast(t('msg.house_vacant'), 'warning');
+          if (houseRes.error) return showToast(t('msg.house_not_found'), 'error');
+          showForm(houseRes.house, previewRes);
         } catch {
           hideLoader();
           showToast(t('msg.network_error'), 'error');
@@ -540,11 +543,17 @@ async function initCollectPage() {
     useManualBtn.disabled = true;
     showLoader();
     try {
-      const res = await apiGet({ action: 'getHouse', qr: houseId });
-      if (res.error === 'VACANT') { showToast(t('msg.house_vacant'), 'warning'); return; }
-      if (res.error) { showToast(t('msg.house_not_found'), 'error'); return; }
+      const { month, year } = prevMonth();
+      const previewYear  = parseInt(yearSel.value,  10) || year;
+      const previewMonth = parseInt(monthSel.value, 10) || month;
+      const [houseRes, previewRes] = await Promise.all([
+        apiGet({ action: 'getHouse', qr: houseId }),
+        apiGet({ action: 'getCollectionPreview', houseId, year: previewYear, month: previewMonth }).catch(() => null),
+      ]);
+      if (houseRes.error === 'VACANT') { showToast(t('msg.house_vacant'), 'warning'); return; }
+      if (houseRes.error) { showToast(t('msg.house_not_found'), 'error'); return; }
       manualSection.classList.add('hidden');
-      showForm(res.house);
+      showForm(houseRes.house, previewRes);
     } catch {
       showToast(t('msg.network_error'), 'error');
     } finally {
