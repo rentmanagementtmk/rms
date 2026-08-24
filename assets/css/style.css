@@ -481,6 +481,9 @@ input:focus, select:focus { border-color: var(--blue); }
 
 /* ─── REPORT PAGE ──────────────────────────────────────────────────────────── */
 .report-month-badge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 0.8125rem;
   font-weight: 600;
   color: rgba(255,255,255,.9);
@@ -496,12 +499,14 @@ input:focus, select:focus { border-color: var(--blue); }
 .report-nav-btn {
   background: none;
   border: none;
-  color: rgba(255,255,255,.85);
-  font-size: 1.125rem;
+  color: rgba(255,255,255,.9);
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
-  padding: 0 0.1rem;
+  padding: 0 0.35rem;
   -webkit-tap-highlight-color: transparent;
+  min-width: 2rem;
+  text-align: center;
 }
 
 .report-nav-btn:disabled { opacity: 0.3; cursor: default; }
