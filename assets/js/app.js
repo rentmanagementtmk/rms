@@ -988,8 +988,6 @@ async function initDashboardPage() {
 // ─── REPORT PAGE ─────────────────────────────────────────────────────────────
 async function initReportPage() {
   applyTranslations();
-  document.getElementById('lang-toggle')?.addEventListener('click', () =>
-    setLang(getLang() === 'en' ? 'kn' : 'en'));
 
   const { month, year } = prevMonth();
   const badge = document.getElementById('report-month-badge');
@@ -1111,8 +1109,6 @@ function _fmtDateOnly(isoStr) {
 async function initLedgerPage() {
   loadHouseCache();
   applyTranslations();
-  document.getElementById('lang-toggle')?.addEventListener('click', () =>
-    setLang(getLang() === 'en' ? 'kn' : 'en'));
 
   const params   = new URLSearchParams(location.search);
   const houseId  = params.get('house');
@@ -1212,6 +1208,8 @@ function renderLedger(data, contentEl) {
       </div>
     </div>
 
+    ${incHtml}
+
     <div class="ledger-section">
       <p class="ledger-section-title">${t('ledger.payment_history')}</p>
       <div class="ledger-table-wrap">
@@ -1225,8 +1223,7 @@ function renderLedger(data, contentEl) {
           <tbody>${rowsHtml}</tbody>
         </table>
       </div>
-    </div>
-    ${incHtml}`;
+    </div>`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
