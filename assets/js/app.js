@@ -767,7 +767,7 @@ async function initDashboardPage() {
                   ${incLine}
                   <div class="dup-splits">${splitLines}</div>
                 </div>
-                <span class="row-amount">${inr(total)}</span>
+                <span class="row-amount">${inr(total)} <span class="row-chevron">›</span></span>
               </a>`;
           } else {
             payments.forEach(p => {
@@ -789,7 +789,7 @@ async function initDashboardPage() {
                   ${balLine2}
                   ${incLine}
                 </div>
-                <span class="row-amount">${inr(p.AmountReceived)}</span>
+                <span class="row-amount">${inr(p.AmountReceived)} <span class="row-chevron">›</span></span>
               </a>`;
             });
           }
@@ -989,20 +989,31 @@ async function initDashboardPage() {
 async function initReportPage() {
   applyTranslations();
 
-  const { month, year } = prevMonth();
-  const badge = document.getElementById('report-month-badge');
-  if (badge) badge.textContent = `${t('month.' + month)} ${year}`;
+  let { month, year } = prevMonth();
+  const now = new Date();
+  const maxYear = now.getFullYear(), maxMonth = now.getMonth() + 1;
 
+  const labelEl   = document.getElementById('report-month-label');
+  const prevBtn   = document.getElementById('report-prev');
+  const nextBtn   = document.getElementById('report-next');
   const contentEl = document.getElementById('report-content');
-  showLoader();
   loadHouseCache();
 
-  // Building order as specified for the report sheet
   const REPORT_ORDER = ['Spatika', 'Manikya', 'Jalanidhi', 'Vaidurya', 'Aparanji'];
 
-  try {
-    const [dashRes, balRes] = await Promise.all([
-      apiGet({ action: 'getDashboard', year, month }),
+  function updateNav() {
+    if (labelEl) labelEl.textContent = `${t('month.' + month)} ${year}`;
+    // disable next when already at current month
+    if (nextBtn) nextBtn.disabled = (year === maxYear && month === maxMonth);
+  }
+
+  async function loadReport() {
+    updateNav();
+    contentEl.innerHTML = '';
+    showLoader();
+    try {
+      const [dashRes, balRes] = await Promise.all([
+        apiGet({ action: 'getDashboard', year, month }),
       apiGet({ action: 'getBalanceSummary', year, month }),
     ]);
 
@@ -1097,7 +1108,23 @@ async function initReportPage() {
   } finally {
     hideLoader();
   }
-}
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (month === 1) { month = 12; year--; } else { month--; }
+      loadReport();
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (year === maxYear && month === maxMonth) return;
+      if (month === 12) { month = 1; year++; } else { month++; }
+      loadReport();
+    });
+  }
+
+  loadReport();
 
 function _fmtDateOnly(isoStr) {
   if (!isoStr) return '';
