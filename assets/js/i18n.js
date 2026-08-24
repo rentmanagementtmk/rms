@@ -7,7 +7,7 @@ const TRANSLATIONS = {
     'header.collect':         'Rent',
     'header.report':          'Summary',
     'header.lang_toggle':     'ಕನ್ನಡ',
-    'nav.collect':            'Collect',
+    'nav.collect':            'Rent',
     'nav.dashboard':          'Dashboard',
     'nav.summary':            'Summary',
 
@@ -44,6 +44,9 @@ const TRANSLATIONS = {
     'dashboard.total':        'Total Collected',
     'dashboard.loading':      'Loading…',
     'dashboard.retry_btn':    '🔕 Retry',
+    'dashboard.widget_overdue':   'Overdue',
+    'dashboard.widget_increment': 'Increment Due',
+    'dashboard.widget_failed':    'Notif. Failed',
 
     'month.1':  'January',   'month.2':  'February',  'month.3':  'March',
     'month.4':  'April',     'month.5':  'May',        'month.6':  'June',
@@ -152,6 +155,9 @@ const TRANSLATIONS = {
     'dashboard.total':        'ಒಟ್ಟು ಸಂಗ್ರಹ',
     'dashboard.loading':      'ಲೋಡ್ ಆಗುತ್ತಿದೆ…',
     'dashboard.retry_btn':    '🔕 ಮರು-ಕಳುಹಿಸಿ',
+    'dashboard.widget_overdue':   'ಬಾಕಿ ಮನೆಗಳು',
+    'dashboard.widget_increment': 'ಏರಿಕೆ ಬಾಕಿದೆ',
+    'dashboard.widget_failed':    'ಅಧಿಸೂಚನೆ ವಿಫಲ',
 
     'month.1':  'ಜನವರಿ',    'month.2':  'ಫೆಬ್ರವರಿ',  'month.3':  'ಮಾರ್ಚ್',
     'month.4':  'ಏಪ್ರಿಲ್',  'month.5':  'ಮೇ',          'month.6':  'ಜೂನ್',

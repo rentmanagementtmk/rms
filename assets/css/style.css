@@ -537,6 +537,53 @@ input:focus, select:focus { border-color: var(--blue); }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ─── DASHBOARD – PRIORITY STRIP ───────────────────────────────────────── */
+.priority-strip {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+
+.priority-pill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.25rem;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s, transform 0.1s;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.priority-pill:active { opacity: 0.75; transform: scale(0.97); }
+
+.priority-pill.active { border-color: currentColor; }
+
+.pp-count {
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pp-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.priority-pill--overdue   { color: var(--red);   }
+.priority-pill--increment { color: var(--amber); }
+.priority-pill--failed    { color: var(--muted); }
+
 /* ─── DASHBOARD – SUMMARY BAR ───────────────────────────────────────────── */
 .summary-bar {
   background: var(--slate);

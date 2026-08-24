@@ -824,6 +824,8 @@ async function initDashboardPage() {
       ? `${t('month.' + filterMonth.value)} ${filterYear.value}`
       : `${t('msg.all_of')} ${filterYear.value}`;
 
+    renderPriorityStrip(balances, records);
+
     resultsEl.innerHTML = `
       <div class="summary-bar">
         <div>
@@ -839,6 +841,76 @@ async function initDashboardPage() {
   let _loadTimer = null;
   function debouncedLoad() { clearTimeout(_loadTimer); _loadTimer = setTimeout(load, 350); }
   [filterYear, filterMonth, filterHouse].forEach(el => el.addEventListener('change', debouncedLoad));
+
+  // builds the houseId sets used by the priority strip tap handlers
+  function _houseIdsForWidget(type, balances, records) {
+    const today = new Date();
+    if (type === 'overdue') {
+      return Object.entries(balances)
+        .filter(([, b]) => !b.futureOccupancy && b.expectedRent > 0 && today.getDate() > 10
+          && b.balance >= 2 * b.expectedRent)
+        .map(([id]) => id);
+    }
+    if (type === 'increment') {
+      return Object.entries(balances)
+        .filter(([, b]) => b.upcomingIncrement && typeof b.upcomingIncrement === 'object')
+        .map(([id]) => id);
+    }
+    if (type === 'failed') {
+      const ids = new Set();
+      records.forEach(r => {
+        const s = String(r.NotificationSent || '').toUpperCase();
+        if (s === 'FAILED' || s === 'DISCONNECTED') ids.add(r.HouseID);
+      });
+      return [...ids];
+    }
+    return [];
+  }
+
+  function renderPriorityStrip(balances, records) {
+    const stripEl = document.getElementById('priority-strip');
+    if (!stripEl) return;
+
+    const widgets = [
+      { type: 'overdue',    labelKey: 'dashboard.widget_overdue' },
+      { type: 'increment',  labelKey: 'dashboard.widget_increment' },
+      { type: 'failed',     labelKey: 'dashboard.widget_failed' },
+    ];
+
+    const pills = widgets.map(w => {
+      const ids = _houseIdsForWidget(w.type, balances, records);
+      return { ...w, ids, count: ids.length };
+    }).filter(w => w.count > 0);
+
+    if (pills.length === 0) { stripEl.innerHTML = ''; return; }
+
+    stripEl.innerHTML = `<div class="priority-strip">${
+      pills.map(w =>
+        `<button class="priority-pill priority-pill--${w.type}" data-widget="${w.type}">
+          <span class="pp-count">${w.count}</span>
+          <span class="pp-label">${t(w.labelKey)}</span>
+        </button>`
+      ).join('')
+    }</div>`;
+
+    // tap: filter to matching houses; tap again to deselect and show all
+    stripEl.querySelectorAll('.priority-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isActive = btn.classList.contains('active');
+        stripEl.querySelectorAll('.priority-pill').forEach(p => p.classList.remove('active'));
+        if (isActive) {
+          filterHouse.value = '';
+        } else {
+          const type = btn.dataset.widget;
+          const ids = _houseIdsForWidget(type, _dashboardBalances, _dashboardRecords);
+          if (!ids.length) return;
+          filterHouse.value = ids.length === 1 ? ids[0] : '';
+          btn.classList.add('active');
+        }
+        load();
+      });
+    });
+  }
 
   const retryBtn    = document.getElementById('retry-btn');
   const validateBtn = document.getElementById('validate-btn');
