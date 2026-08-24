@@ -7,20 +7,19 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>RMS – Rent Summary</title>
+  <title>RMS – Tenant Ledger</title>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body data-page="report">
+<body data-page="ledger">
 
   <header class="app-header">
     <div class="header-brand">
-      <span class="header-logo">🏠</span>
-      <span class="header-title">RMS</span>
+      <a href="javascript:history.back()" class="ledger-back-btn" aria-label="Back">&#8592;</a>
+      <span class="header-title" data-i18n="ledger.title">Tenant Ledger</span>
     </div>
     <div class="header-actions">
-      <span id="report-month-badge" class="report-month-badge"></span>
       <button id="lang-toggle" class="lang-btn" aria-label="Switch language">
         <span class="lang-seg lang-en">E</span>
         <span class="lang-seg lang-kn">ಕ</span>
@@ -37,7 +36,7 @@
       <span class="nav-icon">📊</span>
       <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
     </a>
-    <a href="report.html" class="nav-item nav-active">
+    <a href="report.html" class="nav-item">
       <span class="nav-icon">📋</span>
       <span class="nav-label" data-i18n="nav.summary">Summary</span>
     </a>
@@ -48,8 +47,26 @@
   </nav>
 
   <main>
-    <div id="page-loader" class="page-loader hidden" data-i18n="msg.loading">Loading…</div>
-    <div id="report-content"></div>
+
+    <!-- ── HOUSE SELECTOR (shown when no ?house= param) ──────── -->
+    <section id="ledger-selector" class="card hidden">
+      <div class="field">
+        <label for="ledger-house-select" data-i18n="ledger.select_house">Select House</label>
+        <select id="ledger-house-select">
+          <option value="" data-i18n="collect.house_ph">— select a house —</option>
+        </select>
+      </div>
+      <button id="ledger-view-btn" class="btn btn-primary" data-i18n="ledger.view_btn">View Ledger</button>
+    </section>
+
+    <!-- ── LOADING / CONTENT ──────────────────────────────────── -->
+    <div id="ledger-loading" class="loading-state hidden">
+      <div class="spinner"></div>
+      <span data-i18n="dashboard.loading">Loading…</span>
+    </div>
+
+    <div id="ledger-content"></div>
+
   </main>
 
   <!-- More sheet -->
@@ -64,6 +81,8 @@
       </a>
     </div>
   </div>
+
+  <div id="toast" class="toast hidden"></div>
 
   <script src="assets/js/i18n.js"></script>
   <script src="assets/js/app.js"></script>

@@ -697,6 +697,7 @@ async function initDashboardPage() {
 
       HOUSES.filter(h => h.building === building).forEach(h => {
         if (filterHouse.value && !isBldgFilter && h.id !== filterHouse.value) return;
+        if (_activeWidgetIds && !_activeWidgetIds.has(h.id)) return;
 
         const payments = byHouse[h.id] || [];
 
@@ -728,14 +729,14 @@ async function initDashboardPage() {
             ? `<span class="row-sub">${t('msg.prebooked')} ${bEntry.futureOccupancy}</span>`
             : (bal > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(bal)}</span>` : '');
           rowsHtml += `
-            <div class="house-row unpaid${futureClass}${vacantClass}">
+            <a href="ledger.html?house=${h.id}" class="house-row unpaid${futureClass}${vacantClass}">
               <div class="row-info">
                 <span class="row-label">${houseLabel(h)}${incIcon}${dot}</span>
                 ${subLine}
                 ${incLine}
               </div>
-              <span class="row-amount no-pay">—</span>
-            </div>`;
+              <span class="row-amount no-pay row-chevron">›</span>
+            </a>`;
         } else {
           const hasDup = isMonthSelected && payments.length > 1;
 
@@ -758,7 +759,7 @@ async function initDashboardPage() {
               </div>`
             ).join('');
             rowsHtml += `
-              <div class="house-row paid dup-entry${futureClass}">
+              <a href="ledger.html?house=${h.id}" class="house-row paid dup-entry${futureClass}">
                 <div class="row-info">
                   <span class="row-label">${rowLabel} <span class="tip" data-tip="${t('tip.duplicate')}">⚠️</span>${bell}${incIcon}${dot}</span>
                   <span class="row-sub">${monthLabel} · ${payments.length} ${t('msg.payments')}</span>
@@ -767,7 +768,7 @@ async function initDashboardPage() {
                   <div class="dup-splits">${splitLines}</div>
                 </div>
                 <span class="row-amount">${inr(total)}</span>
-              </div>`;
+              </a>`;
           } else {
             payments.forEach(p => {
               buildingTotal += p.AmountReceived;
@@ -780,7 +781,7 @@ async function initDashboardPage() {
               const dot2      = balDot(histBal2, bEntry.expectedRent || 0, today, false);
               const balLine2  = histBal2 > 0 ? `<span class="row-sub row-balance">${t('msg.balance')} ${inr(histBal2)}</span>` : '';
               rowsHtml += `
-              <div class="house-row paid${futureClass}">
+              <a href="ledger.html?house=${h.id}" class="house-row paid${futureClass}">
                 <div class="row-info">
                   <span class="row-label">${rowLabel2}${bell2}${incIcon2}${dot2}</span>
                   <span class="row-sub">${t('month.' + p.RentForMonth)} ${p.RentForYear}</span>
@@ -789,7 +790,7 @@ async function initDashboardPage() {
                   ${incLine}
                 </div>
                 <span class="row-amount">${inr(p.AmountReceived)}</span>
-              </div>`;
+              </a>`;
             });
           }
         }
@@ -837,9 +838,19 @@ async function initDashboardPage() {
       ${cardsHtml}`;
   }
 
+  let _activeWidgetIds   = null;
+  let _activeWidgetType  = null; // persists across re-renders to restore active class
+
   // Debounce: wait 350ms after last change before firing API call
   let _loadTimer = null;
-  function debouncedLoad() { clearTimeout(_loadTimer); _loadTimer = setTimeout(load, 350); }
+  function debouncedLoad() {
+    clearTimeout(_loadTimer);
+    // manual filter change clears any active widget selection
+    _activeWidgetIds  = null;
+    _activeWidgetType = null;
+    document.querySelectorAll('.priority-pill').forEach(p => p.classList.remove('active'));
+    _loadTimer = setTimeout(load, 350);
+  }
   [filterYear, filterMonth, filterHouse].forEach(el => el.addEventListener('change', debouncedLoad));
 
   // builds the houseId sets used by the priority strip tap handlers
@@ -853,7 +864,8 @@ async function initDashboardPage() {
     }
     if (type === 'increment') {
       return Object.entries(balances)
-        .filter(([, b]) => b.upcomingIncrement && typeof b.upcomingIncrement === 'object')
+        .filter(([, b]) => (b.upcomingIncrement && typeof b.upcomingIncrement === 'object')
+                        || (b.recentIncrement  && typeof b.recentIncrement  === 'object'))
         .map(([id]) => id);
     }
     if (type === 'failed') {
@@ -872,9 +884,9 @@ async function initDashboardPage() {
     if (!stripEl) return;
 
     const widgets = [
-      { type: 'overdue',    labelKey: 'dashboard.widget_overdue' },
-      { type: 'increment',  labelKey: 'dashboard.widget_increment' },
-      { type: 'failed',     labelKey: 'dashboard.widget_failed' },
+      { type: 'overdue',    icon: '🔴', labelKey: 'dashboard.widget_overdue' },
+      { type: 'increment',  icon: '⬆️', labelKey: 'dashboard.widget_increment' },
+      { type: 'failed',     icon: '🔕', labelKey: 'dashboard.widget_failed' },
     ];
 
     const pills = widgets.map(w => {
@@ -886,26 +898,28 @@ async function initDashboardPage() {
 
     stripEl.innerHTML = `<div class="priority-strip">${
       pills.map(w =>
-        `<button class="priority-pill priority-pill--${w.type}" data-widget="${w.type}">
-          <span class="pp-count">${w.count}</span>
+        `<button class="priority-pill priority-pill--${w.type}${_activeWidgetType === w.type ? ' active' : ''}" data-widget="${w.type}">
+          <span class="pp-count">${w.count} <span class="pp-icon">${w.icon}</span></span>
           <span class="pp-label">${t(w.labelKey)}</span>
         </button>`
       ).join('')
     }</div>`;
 
-    // tap: filter to matching houses; tap again to deselect and show all
+    // tap: filter rows to widget houses; tap again to deselect and show all
     stripEl.querySelectorAll('.priority-pill').forEach(btn => {
       btn.addEventListener('click', () => {
-        const isActive = btn.classList.contains('active');
-        stripEl.querySelectorAll('.priority-pill').forEach(p => p.classList.remove('active'));
+        const type = btn.dataset.widget;
+        const isActive = _activeWidgetType === type;
         if (isActive) {
+          _activeWidgetIds  = null;
+          _activeWidgetType = null;
           filterHouse.value = '';
         } else {
-          const type = btn.dataset.widget;
           const ids = _houseIdsForWidget(type, _dashboardBalances, _dashboardRecords);
           if (!ids.length) return;
+          _activeWidgetIds  = new Set(ids);
+          _activeWidgetType = type;
           filterHouse.value = ids.length === 1 ? ids[0] : '';
-          btn.classList.add('active');
         }
         load();
       });
@@ -1092,9 +1106,142 @@ function _fmtDateOnly(isoStr) {
   const d = new Date(isoStr);
   return `${String(d.getDate()).padStart(2,'0')}-${_MONTHS_SHORT[d.getMonth()]}-${d.getFullYear()}`;
 }
+
+// ─── LEDGER PAGE ─────────────────────────────────────────────────────────────
+async function initLedgerPage() {
+  loadHouseCache();
+  applyTranslations();
+  document.getElementById('lang-toggle')?.addEventListener('click', () =>
+    setLang(getLang() === 'en' ? 'kn' : 'en'));
+
+  const params   = new URLSearchParams(location.search);
+  const houseId  = params.get('house');
+  const selectorEl = document.getElementById('ledger-selector');
+  const loadingEl  = document.getElementById('ledger-loading');
+  const contentEl  = document.getElementById('ledger-content');
+
+  async function loadLedger(id) {
+    selectorEl.classList.add('hidden');
+    loadingEl.classList.remove('hidden');
+    contentEl.innerHTML = '';
+    try {
+      const res = await apiGet({ action: 'getLedger', houseId: id });
+      if (res.error) { contentEl.innerHTML = `<p class="msg-error">${res.error}</p>`; return; }
+      renderLedger(res, contentEl);
+    } catch {
+      contentEl.innerHTML = `<p class="msg-error">${t('msg.net_check')}</p>`;
+    } finally {
+      loadingEl.classList.add('hidden');
+    }
+  }
+
+  if (houseId) {
+    await loadLedger(houseId);
+  } else {
+    selectorEl.classList.remove('hidden');
+    const sel = document.getElementById('ledger-house-select');
+    populateHouseSelect(sel);
+    document.getElementById('ledger-view-btn').addEventListener('click', () => {
+      if (!sel.value) return showToast(t('msg.select_house'), 'warning');
+      history.replaceState(null, '', `ledger.html?house=${encodeURIComponent(sel.value)}`);
+      loadLedger(sel.value);
+    });
+  }
+}
+
+function renderLedger(data, contentEl) {
+  const { house, rows, incrementHistory, totalPaid, outstanding } = data;
+  const tenantName = house.TenantName || '';
+  const houseEntry = HOUSES.find(h => h.id === house.HouseID);
+  const displayName = houseEntry
+    ? `${houseEntry.building} ${houseEntry.displayNum}${tenantName ? ' · ' + tenantName : ''}`
+    : (house.HouseLabel || house.HouseID);
+  const since = house.OccupancyDate ? _fmtDateOnly(house.OccupancyDate) : '';
+
+  // rows newest first for display
+  const displayRows = [...rows].reverse();
+
+  const rowsHtml = displayRows.map(r => {
+    const isPaid    = r.paid >= r.expected && r.expected > 0;
+    const isPartial = r.paid > 0 && r.paid < r.expected;
+    const statusCls = isPaid ? 'ledger-row--paid' : (isPartial ? 'ledger-row--partial' : (r.expected > 0 ? 'ledger-row--unpaid' : ''));
+    const paidCell  = r.payments.length
+      ? r.payments.map(p =>
+          `<span>${inr(p.amount)}</span>${p.date ? `<span class="ledger-pay-date">${_fmtDateOnly(p.date)}${p.mode ? ' · ' + p.mode : ''}</span>` : ''}`
+        ).join('')
+      : `<span class="ledger-nil">—</span>`;
+    const balCell = r.runningBalance > 0
+      ? `<span class="ledger-bal-owed">${inr(r.runningBalance)}</span>`
+      : `<span class="ledger-nil">—</span>`;
+    return `<tr class="${statusCls}">
+      <td class="ledger-month-cell">${t('month.' + r.month)}<br><span class="ledger-year">${r.year}</span></td>
+      <td>${r.expected > 0 ? inr(r.expected) : '<span class="ledger-nil">—</span>'}</td>
+      <td>${paidCell}</td>
+      <td>${balCell}</td>
+    </tr>`;
+  }).join('');
+
+  const incHtml = incrementHistory.length ? `
+    <div class="ledger-section">
+      <p class="ledger-section-title" data-i18n="ledger.inc_history">${t('ledger.inc_history')}</p>
+      <div class="ledger-inc-list">${
+        incrementHistory.map(h => `
+          <div class="ledger-inc-row">
+            <span class="ledger-inc-date">${h.effectiveDate}</span>
+            <span class="ledger-inc-arrow">${inr(h.previousRent)} → ${inr(h.newRent)}</span>
+          </div>`).join('')
+      }</div>
+    </div>` : '';
+
+  contentEl.innerHTML = `
+    <div class="ledger-header-card house-card">
+      <p class="house-building">${house.BuildingName || ''}</p>
+      <p class="house-name">${displayName}</p>
+      ${since ? `<p class="house-rent">${t('ledger.since')} ${since}</p>` : ''}
+    </div>
+
+    <div class="ledger-totals card">
+      <div class="ledger-total-item">
+        <span data-i18n="ledger.total_paid">${t('ledger.total_paid')}</span>
+        <strong class="ledger-total-paid">${inr(totalPaid)}</strong>
+      </div>
+      <div class="ledger-total-divider"></div>
+      <div class="ledger-total-item">
+        <span data-i18n="ledger.outstanding">${t('ledger.outstanding')}</span>
+        <strong class="${outstanding > 0 ? 'ledger-total-owed' : 'ledger-total-clear'}">${outstanding > 0 ? inr(outstanding) : '✓ Clear'}</strong>
+      </div>
+    </div>
+
+    <div class="ledger-section">
+      <p class="ledger-section-title">${t('ledger.payment_history')}</p>
+      <div class="ledger-table-wrap">
+        <table class="ledger-table">
+          <thead><tr>
+            <th>${t('ledger.col_month')}</th>
+            <th>${t('ledger.col_expected')}</th>
+            <th>${t('ledger.col_paid')}</th>
+            <th>${t('ledger.col_balance')}</th>
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+    </div>
+    ${incHtml}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const page = document.body.dataset.page;
   if (page === 'collect')   initCollectPage();
   if (page === 'dashboard') initDashboardPage();
   if (page === 'report')    initReportPage();
+  if (page === 'ledger')    initLedgerPage();
+
+  // More sheet — shared across all pages
+  const moreBtn     = document.getElementById('more-btn');
+  const moreSheet   = document.getElementById('more-sheet');
+  const moreBackdrop = moreSheet?.querySelector('.more-backdrop');
+  if (moreBtn && moreSheet) {
+    moreBtn.addEventListener('click', () => moreSheet.classList.remove('hidden'));
+    moreBackdrop.addEventListener('click', () => moreSheet.classList.add('hidden'));
+  }
 });

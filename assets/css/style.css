@@ -372,6 +372,113 @@ input:focus, select:focus { border-color: var(--blue); }
 .validate-btn:hover  { border-color: var(--muted); }
 .validate-btn:active { opacity: 0.7; }
 
+/* ─── LEDGER PAGE ───────────────────────────────────────────────────────────── */
+.ledger-back-btn {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: 700;
+  padding-right: 0.625rem;
+  line-height: 1;
+}
+
+.ledger-header-card { margin-bottom: 0; border-radius: var(--radius) var(--radius) 0 0; }
+
+.ledger-totals {
+  display: flex;
+  align-items: center;
+  border-radius: 0 0 var(--radius) var(--radius);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  gap: 0;
+  padding: 0.875rem 1rem;
+}
+
+.ledger-total-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.ledger-total-item span { font-size: 0.75rem; color: var(--muted); }
+
+.ledger-total-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 1rem; }
+
+.ledger-total-paid  { font-size: 1.125rem; font-weight: 700; color: var(--green); }
+.ledger-total-owed  { font-size: 1.125rem; font-weight: 700; color: var(--red); }
+.ledger-total-clear { font-size: 1rem; font-weight: 600; color: var(--green); }
+
+.ledger-section { margin-bottom: 1rem; }
+
+.ledger-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.ledger-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.ledger-table th {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border-bottom: 1.5px solid var(--border);
+  white-space: nowrap;
+}
+
+.ledger-table td {
+  padding: 0.625rem 0.75rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.ledger-table tbody tr:last-child td { border-bottom: none; }
+
+.ledger-row--paid    { background: rgba(16,185,129,.05); }
+.ledger-row--partial { background: rgba(245,158,11,.06); }
+.ledger-row--unpaid  { background: rgba(239,68,68,.05); }
+
+.ledger-month-cell { font-weight: 600; white-space: nowrap; }
+.ledger-year       { font-size: 0.6875rem; color: var(--muted); font-weight: 400; }
+.ledger-pay-date   { display: block; font-size: 0.6875rem; color: var(--muted); }
+.ledger-bal-owed   { color: var(--red); font-weight: 600; }
+.ledger-nil        { color: var(--muted); }
+
+.ledger-inc-list { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+
+.ledger-inc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.ledger-inc-row:last-child { border-bottom: none; }
+.ledger-inc-date  { color: var(--muted); font-size: 0.8125rem; }
+.ledger-inc-arrow { font-weight: 600; color: var(--amber); }
+
 /* ─── REPORT PAGE ──────────────────────────────────────────────────────────── */
 .report-month-badge {
   font-size: 0.8125rem;
@@ -487,6 +594,80 @@ input:focus, select:focus { border-color: var(--blue); }
 /* min-height reserves the rent line space before data loads */
 .house-rent     { font-size: 0.8125rem; opacity: 0.85; margin-top: 0.375rem; min-height: 1rem; }
 
+/* ─── MORE SHEET ────────────────────────────────────────────────────────── */
+.more-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.more-overlay.hidden { display: none !important; }
+
+.more-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+}
+
+.more-panel {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0.5rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -2px 12px rgba(0,0,0,.12);
+}
+
+.more-panel-handle {
+  width: 2.5rem;
+  height: 0.25rem;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 1rem;
+}
+
+.more-panel-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--slate);
+  font-size: 1rem;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.more-item:last-child { border-bottom: none; }
+
+.more-item--disabled { opacity: 0.45; pointer-events: none; }
+
+.more-item-icon  { font-size: 1.25rem; flex-shrink: 0; }
+.more-item-label { flex: 1; }
+
+.more-item-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--amber);
+  color: var(--slate);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
 /* ─── TOAST ─────────────────────────────────────────────────────────────── */
 .toast {
   position: fixed;
@@ -562,13 +743,19 @@ input:focus, select:focus { border-color: var(--blue); }
 
 .priority-pill:active { opacity: 0.75; transform: scale(0.97); }
 
-.priority-pill.active { border-color: currentColor; }
+.priority-pill.active {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 12%, white);
+  font-weight: 700;
+}
 
 .pp-count {
   font-size: 1.375rem;
   font-weight: 800;
   line-height: 1;
 }
+
+.pp-icon  { font-size: 0.875rem; vertical-align: middle; }
 
 .pp-label {
   font-size: 0.625rem;
@@ -821,6 +1008,12 @@ input:focus, select:focus { border-color: var(--blue); }
 
 /* Amber left accent for consolidated duplicate rows */
 .house-row.dup-entry { border-left: 3px solid var(--amber); padding-left: calc(1rem - 3px); }
+
+/* rows rendered as <a> tags for ledger tap */
+a.house-row { text-decoration: none; color: inherit; }
+a.house-row:active { opacity: 0.75; }
+
+.row-chevron { color: var(--muted); font-size: 1.25rem; font-weight: 300; }
 
 .dup-splits      { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.375rem; }
 

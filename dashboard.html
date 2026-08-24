@@ -30,7 +30,7 @@
   <nav class="bottom-nav">
     <a href="index.html" class="nav-item">
       <span class="nav-icon">💳</span>
-      <span class="nav-label" data-i18n="nav.collect">Collect</span>
+      <span class="nav-label" data-i18n="nav.collect">Rent</span>
     </a>
     <a href="dashboard.html" class="nav-item nav-active">
       <span class="nav-icon">📊</span>
@@ -40,6 +40,10 @@
       <span class="nav-icon">📋</span>
       <span class="nav-label" data-i18n="nav.summary">Summary</span>
     </a>
+    <button type="button" id="more-btn" class="nav-item">
+      <span class="nav-icon">☰</span>
+      <span class="nav-label" data-i18n="nav.more">More</span>
+    </button>
   </nav>
 
   <main>
@@ -104,6 +108,19 @@
         <button id="dup-cancel"  class="btn btn-secondary"></button>
         <button id="dup-confirm" class="btn btn-primary"></button>
       </div>
+    </div>
+  </div>
+
+  <!-- More sheet -->
+  <div id="more-sheet" class="more-overlay hidden" role="dialog" aria-modal="true">
+    <div class="more-backdrop"></div>
+    <div class="more-panel">
+      <div class="more-panel-handle"></div>
+      <p class="more-panel-title" data-i18n="nav.more">More</p>
+      <a href="ledger.html" class="more-item">
+        <span class="more-item-icon">📒</span>
+        <span class="more-item-label" data-i18n="nav.ledger">Tenant Ledger</span>
+      </a>
     </div>
   </div>
 
